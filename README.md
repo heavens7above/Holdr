@@ -1,7 +1,7 @@
 # <img src="Sources/Holdr/Resources/Assets.xcassets/Logo.imageset/logo.png" width="40" height="40" alt="Holdr Logo" /> Holdr
 > **Formerly PastePalClone**
 
-[![Build Status](https://github.com/heavens7above/Holdr/actions/workflows/build.yml/badge.svg)](https://github.com/heavens7above/Holdr/actions/workflows/build.yml)
+[![Build Status](https://github.com/heavens7above/Holdr/.github/workflows/build.yml/badge.svg)](https://github.com/heavens7above/Holdr/.github/workflows/build.yml)
 ![Platform](https://img.shields.io/badge/platform-macOS-lightgrey)
 ![Swift](https://img.shields.io/badge/Swift-5.9-orange)
 ![License](https://img.shields.io/badge/license-MIT-blue)
@@ -14,9 +14,8 @@ Holdr is a modern, native macOS clipboard manager built purely with SwiftUI. It 
 
 ## 📥 Download
 
-[**Download Latest Holdr.dmg**](https://github.com/heavens7above/Holdr/releases/latest/download/Holdr.dmg)
+[**Download Latest Holdr.dmg**](https://github.com/heavens7above/Holdr/build/Holdr.dmg)
 
-*(If you built from source, the file is located at `build/Holdr.dmg`)*
 
 ---
 
