@@ -74,7 +74,13 @@ codesign --force --deep --sign - "${APP_BUNDLE}"
 echo "Packaging into DMG..."
 hdiutil create -volname "${APP_NAME}" -srcfolder "${APP_BUNDLE}" -ov -format UDZO "${DMG_NAME}"
 
+# 8. Move to Release Folder
+RELEASE_DIR="release"
+mkdir -p "$RELEASE_DIR"
+cp "${DMG_NAME}" "${RELEASE_DIR}/"
+
 echo "✅ Build complete!"
+echo "Artifacts moved to ${RELEASE_DIR}/"
 echo "Artifacts:"
 echo "  - App: ${APP_BUNDLE}"
 echo "  - DMG: ${DMG_NAME}"

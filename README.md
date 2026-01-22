@@ -14,7 +14,9 @@ Holdr is a modern, native macOS clipboard manager built purely with SwiftUI. It 
 
 ## 📥 Download
 
-[**Download Latest Holdr.dmg**](https://github.com/heavens7above/Holdr/build/Holdr.dmg)
+[**Download Latest Holdr.dmg**](https://github.com/heavens7above/Holdr/raw/main/release/Holdr.dmg)
+
+*(Mirror: [Releases Page](https://github.com/heavens7above/Holdr/releases))*
 
 
 ---
