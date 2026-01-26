@@ -52,6 +52,10 @@ struct ClipCardView: View {
             RoundedRectangle(cornerRadius: 12)
                 .stroke(Color(nsColor: .separatorColor), lineWidth: 0.5)
         )
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(accessibilityLabelText)
+        .accessibilityHint("Double tap to copy to clipboard")
+        .accessibilityAddTraits(.isButton)
     }
     
     var iconName: String {
@@ -60,5 +64,32 @@ struct ClipCardView: View {
         case .link: return "link"
         case .image: return "photo"
         }
+    }
+
+    private var accessibilityLabelText: String {
+        let typeString: String
+        let contentDescription: String
+
+        switch item.type {
+        case .text:
+            typeString = "Text"
+            contentDescription = item.content
+        case .link:
+            typeString = "Link"
+            contentDescription = item.content
+        case .image:
+            typeString = "Image"
+            contentDescription = ""
+        }
+
+        let appString = item.appName.map { ", from \($0)" } ?? ""
+        let timeString = item.date.formatted(date: .omitted, time: .shortened)
+
+        // Truncate long content for accessibility
+        let truncatedContent = contentDescription.prefix(100)
+        let ellipsis = contentDescription.count > 100 ? "..." : ""
+        let contentPart = contentDescription.isEmpty ? "" : ". \(truncatedContent)\(ellipsis)"
+
+        return "\(typeString)\(appString)\(contentPart). Copied at \(timeString)"
     }
 }
