@@ -149,24 +149,33 @@ class ClipboardMonitor: ObservableObject {
             }
             
             // 1. Check for Files (Finder)
+            var handledAsFile = false
             if let urls = pasteboard.readObjects(forClasses: [NSURL.self], options: nil) as? [URL], let firstURL = urls.first {
                 // Is it an image file?
                 if let typeID = try? firstURL.resourceValues(forKeys: [.typeIdentifierKey]).typeIdentifier,
                    let utType = UTType(typeID),
                    utType.conforms(to: .image) {
                     
-                    if let data = try? Data(contentsOf: firstURL) {
-                         // Check duplicate
-                         if let first = items.first, case .image(let oldData) = first.type, oldData.count == data.count { return }
-                         
-                         let newItem = HistoryItem(content: firstURL.lastPathComponent, type: .image(data), appBundleID: bundleID, appName: appName)
-                         print("Detected file copy: Image from \(appName ?? "Unknown")")
-                         DispatchQueue.main.async { self.items.insert(newItem, at: 0) }
-                         return
+                    handledAsFile = true
+                    // Load in background to prevent UI hangs (Optimization)
+                    DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+                        if let data = try? Data(contentsOf: firstURL) {
+                             DispatchQueue.main.async {
+                                 guard let self = self else { return }
+                                 // Check duplicate
+                                 if let first = self.items.first, case .image(let oldData) = first.type, oldData.count == data.count { return }
+
+                                 let newItem = HistoryItem(content: firstURL.lastPathComponent, type: .image(data), appBundleID: bundleID, appName: appName)
+                                 print("Detected file copy: Image from \(appName ?? "Unknown")")
+                                 self.items.insert(newItem, at: 0)
+                             }
+                        }
                     }
                 }
             }
             
+            if handledAsFile { return }
+
             // 2. Check for Images (TIFF/PNG from apps)
             // Use readObjects(forClasses: [NSImage.self]) for better coverage
             if pasteboard.canReadObject(forClasses: [NSImage.self], options: nil),
