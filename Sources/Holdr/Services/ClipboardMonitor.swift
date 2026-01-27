@@ -24,46 +24,52 @@ class ClipboardMonitor: ObservableObject {
     }
     
     private func saveLogo() {
-        // 1. Save logo file inside the folder (as requested previously)
-        guard let folderURL = persistenceURL?.deletingLastPathComponent() else { return }
-        let logoURL = folderURL.appendingPathComponent("logo.png")
-        
-        // Try module first (SPM), then main (App Bundle)
-        var resourceURL = Bundle.module.url(forResource: "logo", withExtension: "png")
-        if resourceURL == nil {
-             resourceURL = Bundle.main.url(forResource: "logo", withExtension: "png")
-        }
-        
-        if let bundleLogo = resourceURL,
-           let appLogo = NSImage(contentsOf: bundleLogo) {
+        DispatchQueue.global(qos: .utility).async {
+            // 1. Save logo file inside the folder (as requested previously)
+            guard let folderURL = self.persistenceURL?.deletingLastPathComponent() else { return }
+            let logoURL = folderURL.appendingPathComponent("logo.png")
             
-            // Save file
-            if !FileManager.default.fileExists(atPath: logoURL.path) {
-                try? appLogo.tiffRepresentation?.write(to: logoURL)
+            // Try module first (SPM), then main (App Bundle)
+            var resourceURL = Bundle.module.url(forResource: "logo", withExtension: "png")
+            if resourceURL == nil {
+                 resourceURL = Bundle.main.url(forResource: "logo", withExtension: "png")
             }
             
-            // 2. Set the FOLDER ICON (Minimal Style)
-            // Composite the app logo onto the standard folder icon
-            let folderIcon = NSWorkspace.shared.icon(for: .folder)
-            let newIcon = NSImage(size: folderIcon.size)
-            
-            newIcon.lockFocus()
-            // Draw base folder
-            folderIcon.draw(in: NSRect(origin: .zero, size: folderIcon.size))
-            
-            // Draw logo centered and scaled (e.g. 50% size)
-            // Adjust scale as needed to match standard macOS look
-            let scale: CGFloat = 0.5
-            let logoSize = NSSize(width: folderIcon.size.width * scale, height: folderIcon.size.height * scale)
-            let logoOrigin = NSPoint(
-                x: (folderIcon.size.width - logoSize.width) / 2,
-                y: (folderIcon.size.height - logoSize.height) / 2
-            )
-            
-            appLogo.draw(in: NSRect(origin: logoOrigin, size: logoSize), from: .zero, operation: .sourceOver, fraction: 1.0)
-            newIcon.unlockFocus()
-            
-            NSWorkspace.shared.setIcon(newIcon, forFile: folderURL.path, options: [])
+            if let bundleLogo = resourceURL,
+               let appLogo = NSImage(contentsOf: bundleLogo) {
+
+                // Save file
+                if !FileManager.default.fileExists(atPath: logoURL.path) {
+                    try? appLogo.tiffRepresentation?.write(to: logoURL)
+                }
+
+                DispatchQueue.main.async {
+                    // 2. Set the FOLDER ICON (Minimal Style)
+                    // Composite the app logo onto the standard folder icon
+                    let folderIcon = NSWorkspace.shared.icon(for: .folder)
+                    let newIcon = NSImage(size: folderIcon.size)
+
+                    newIcon.lockFocus()
+                    // Draw base folder
+                    folderIcon.draw(in: NSRect(origin: .zero, size: folderIcon.size))
+
+                    // Draw logo centered and scaled (e.g. 50% size)
+                    // Adjust scale as needed to match standard macOS look
+                    let scale: CGFloat = 0.5
+                    let logoSize = NSSize(width: folderIcon.size.width * scale, height: folderIcon.size.height * scale)
+                    let logoOrigin = NSPoint(
+                        x: (folderIcon.size.width - logoSize.width) / 2,
+                        y: (folderIcon.size.height - logoSize.height) / 2
+                    )
+
+                    appLogo.draw(in: NSRect(origin: logoOrigin, size: logoSize), from: .zero, operation: .sourceOver, fraction: 1.0)
+                    newIcon.unlockFocus()
+
+                    DispatchQueue.global(qos: .utility).async {
+                        NSWorkspace.shared.setIcon(newIcon, forFile: folderURL.path, options: [])
+                    }
+                }
+            }
         }
     }
     
@@ -98,9 +104,9 @@ class ClipboardMonitor: ObservableObject {
     }
     
     private func save() {
-        guard let url = persistenceURL else { return }
         let itemsToSave = self.items
         DispatchQueue.global(qos: .background).async {
+            guard let url = self.persistenceURL else { return }
             do {
                 let data = try JSONEncoder().encode(itemsToSave)
                 // Atomic write prevents corruption if app crashes during write
@@ -113,10 +119,10 @@ class ClipboardMonitor: ObservableObject {
     }
     
     private func load() {
-        guard let url = persistenceURL else { return }
-        
         // Load in background to prevent blocking main thread (CRASH FIX)
         DispatchQueue.global(qos: .userInitiated).async {
+            guard let url = self.persistenceURL else { return }
+
             if !FileManager.default.fileExists(atPath: url.path) { return }
             
             do {
