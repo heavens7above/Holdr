@@ -15,6 +15,7 @@ struct ClipCardView: View {
                     .foregroundColor(.accentColor)
                     .font(.system(size: 18))
             }
+            .accessibilityHidden(true)
             
             VStack(alignment: .leading, spacing: 4) {
                 if case .image(let data) = item.type, let nsImage = NSImage(data: data) {
@@ -23,6 +24,7 @@ struct ClipCardView: View {
                          .aspectRatio(contentMode: .fit)
                          .frame(maxHeight: 120)
                          .cornerRadius(8)
+                         .accessibilityHidden(true)
                 } else {
                     Text(item.content)
                         .lineLimit(2)
@@ -40,6 +42,7 @@ struct ClipCardView: View {
                 }
                 .font(.caption)
                 .foregroundColor(.secondary)
+                .accessibilityHidden(true)
             }
             
             Spacer()
@@ -52,6 +55,11 @@ struct ClipCardView: View {
             RoundedRectangle(cornerRadius: 12)
                 .stroke(Color(nsColor: .separatorColor), lineWidth: 0.5)
         )
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(a11yLabel)
+        .accessibilityValue(a11yValue)
+        .accessibilityHint("Copies content to clipboard")
+        .accessibilityAddTraits(.isButton)
     }
     
     var iconName: String {
@@ -60,5 +68,21 @@ struct ClipCardView: View {
         case .link: return "link"
         case .image: return "photo"
         }
+    }
+
+    var a11yLabel: String {
+        switch item.type {
+        case .text:
+            return "Text: \(item.content)"
+        case .link:
+            return "Link: \(item.content)"
+        case .image:
+            return "Copied Image"
+        }
+    }
+
+    var a11yValue: String {
+        let timeString = item.date.formatted(date: .omitted, time: .shortened)
+        return "Copied at \(timeString)"
     }
 }
