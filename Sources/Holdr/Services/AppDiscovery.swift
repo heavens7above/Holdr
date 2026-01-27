@@ -29,14 +29,6 @@ class AppDiscovery: ObservableObject {
         // Initial fetch
         updateRunningApps()
         
-        // Poll every 5 seconds for new apps (simple approach) or observe workspace notifications
-        Timer.publish(every: 5.0, on: .main, in: .common)
-            .autoconnect()
-            .sink { [weak self] _ in
-                self?.updateRunningApps()
-            }
-            .store(in: &cancellables)
-            
         // Also listen for app launch/terminate notifications
         NSWorkspace.shared.notificationCenter.publisher(for: NSWorkspace.didLaunchApplicationNotification)
             .sink { [weak self] _ in self?.updateRunningApps() }
