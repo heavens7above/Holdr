@@ -28,7 +28,7 @@ struct HistoryItem: Identifiable, Hashable, Codable {
     enum ItemType: Hashable, Codable {
         case text
         case link(URL)
-        case image(Data)
+        case image(String) // Stores the image ID (filename) instead of Data
     }
     
     enum Category: Hashable, Identifiable {
