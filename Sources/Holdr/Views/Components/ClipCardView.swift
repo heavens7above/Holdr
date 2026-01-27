@@ -17,9 +17,8 @@ struct ClipCardView: View {
             }
             
             VStack(alignment: .leading, spacing: 4) {
-                if case .image(let data) = item.type, let nsImage = NSImage(data: data) {
-                     Image(nsImage: nsImage)
-                         .resizable()
+                if case .image(let filename) = item.type {
+                     CachedImageView(filename: filename)
                          .aspectRatio(contentMode: .fit)
                          .frame(maxHeight: 120)
                          .cornerRadius(8)
