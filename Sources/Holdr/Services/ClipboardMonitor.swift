@@ -155,15 +155,24 @@ class ClipboardMonitor: ObservableObject {
                    let utType = UTType(typeID),
                    utType.conforms(to: .image) {
                     
-                    if let data = try? Data(contentsOf: firstURL) {
-                         // Check duplicate
-                         if let first = items.first, case .image(let oldData) = first.type, oldData.count == data.count { return }
-                         
-                         let newItem = HistoryItem(content: firstURL.lastPathComponent, type: .image(data), appBundleID: bundleID, appName: appName)
-                         print("Detected file copy: Image from \(appName ?? "Unknown")")
-                         DispatchQueue.main.async { self.items.insert(newItem, at: 0) }
-                         return
+                    // PERFORMANCE: Offload file reading to background thread to avoid UI hangs
+                    DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+                        guard let self = self else { return }
+
+                        // Synchronous I/O happens here, off main thread
+                        if let data = try? Data(contentsOf: firstURL) {
+
+                            DispatchQueue.main.async {
+                                // Check duplicate
+                                if let first = self.items.first, case .image(let oldData) = first.type, oldData.count == data.count { return }
+
+                                let newItem = HistoryItem(content: firstURL.lastPathComponent, type: .image(data), appBundleID: bundleID, appName: appName)
+                                print("Detected file copy: Image from \(appName ?? "Unknown")")
+                                self.items.insert(newItem, at: 0)
+                            }
+                        }
                     }
+                    return
                 }
             }
             
