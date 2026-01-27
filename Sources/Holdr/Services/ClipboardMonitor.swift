@@ -6,6 +6,22 @@ class ClipboardMonitor: ObservableObject {
     @Published var items: [HistoryItem] = [] {
         didSet {
             print("ClipboardMonitor: items updated, count: \(items.count)")
+
+            // Detect and cleanup removed images
+            let oldImages = Set(oldValue.compactMap { item -> String? in
+                if case .image(let id) = item.type { return id }
+                return nil
+            })
+            let newImages = Set(items.compactMap { item -> String? in
+                if case .image(let id) = item.type { return id }
+                return nil
+            })
+
+            let removedImages = oldImages.subtracting(newImages)
+            for id in removedImages {
+                ImageStore.shared.delete(id: id)
+            }
+
             save()
         }
     }
@@ -25,7 +41,7 @@ class ClipboardMonitor: ObservableObject {
     
     private func saveLogo() {
         // 1. Save logo file inside the folder (as requested previously)
-        guard let folderURL = persistenceURL?.deletingLastPathComponent() else { return }
+        guard let folderURL = PersistenceManager.shared.baseDirectory else { return }
         let logoURL = folderURL.appendingPathComponent("logo.png")
         
         // Try module first (SPM), then main (App Bundle)
@@ -69,36 +85,11 @@ class ClipboardMonitor: ObservableObject {
     
     // Persistence
     private var persistenceURL: URL? {
-        // 1. Try standard iCloud container (if entitled)
-        if let iCloudDocs = FileManager.default.url(forUbiquityContainerIdentifier: nil)?.appendingPathComponent("Documents") {
-             try? FileManager.default.createDirectory(at: iCloudDocs, withIntermediateDirectories: true)
-             return iCloudDocs.appendingPathComponent("history.json")
-        }
-        
-        // 2. Fallback: Explicit path to iCloud Drive (com~apple~CloudDocs) logic from Finder
-        // This is often needed for ad-hoc / non-sandboxed builds to "pretend" to use iCloud Drive
-        let home = FileManager.default.homeDirectoryForCurrentUser
-        let iCloudDrive = home.appendingPathComponent("Library/Mobile Documents/com~apple~CloudDocs")
-        
-        if FileManager.default.fileExists(atPath: iCloudDrive.path) {
-             let folder = iCloudDrive.appendingPathComponent("PastePalClone")
-             // Ensure folder exists
-             try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
-             return folder.appendingPathComponent("history.json")
-        }
-        
-        // 3. Final Fallback: Local Application Support
-        guard let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else { return nil }
-        let bundleID = Bundle.main.bundleIdentifier ?? "com.example.PastePalClone"
-        let folder = appSupport.appendingPathComponent(bundleID)
-        
-        try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
-        
-        return folder.appendingPathComponent("history.json")
+        return PersistenceManager.shared.persistenceURL
     }
     
     private func save() {
-        guard let url = persistenceURL else { return }
+        guard let url = PersistenceManager.shared.persistenceURL else { return }
         let itemsToSave = self.items
         DispatchQueue.global(qos: .background).async {
             do {
@@ -113,7 +104,7 @@ class ClipboardMonitor: ObservableObject {
     }
     
     private func load() {
-        guard let url = persistenceURL else { return }
+        guard let url = PersistenceManager.shared.persistenceURL else { return }
         
         // Load in background to prevent blocking main thread (CRASH FIX)
         DispatchQueue.global(qos: .userInitiated).async {
@@ -121,13 +112,61 @@ class ClipboardMonitor: ObservableObject {
             
             do {
                 let data = try Data(contentsOf: url)
-                let loaded = try JSONDecoder().decode([HistoryItem].self, from: data)
                 
-                // Update UI on Main Thread
+                // 1. Try Legacy (Migration) FIRST
+                // UUIDs in new format will fail Data decoding, ensuring this only matches legacy files
+                if let legacyItems = try? JSONDecoder().decode([LegacyHistoryItem].self, from: data) {
+                    print("Detected legacy format or text-only list. Checking for migration...")
+
+                    var newItems: [HistoryItem] = []
+                    var migrationNeeded = false
+
+                    for item in legacyItems {
+                        let newItemType: HistoryItem.ItemType
+
+                        switch item.type {
+                        case .text:
+                            newItemType = .text
+                        case .link(let url):
+                            newItemType = .link(url)
+                        case .image(let imageData):
+                            // Found raw data! Migrate.
+                            migrationNeeded = true
+                            let imageID = UUID().uuidString
+                            ImageStore.shared.save(data: imageData, id: imageID)
+                            newItemType = .image(imageID)
+                        }
+
+                        var newItem = HistoryItem(
+                            content: item.content,
+                            type: newItemType,
+                            date: item.date,
+                            appBundleID: item.appBundleID,
+                            appName: item.appName
+                        )
+                        newItem.id = item.id
+                        newItems.append(newItem)
+                    }
+
+                    DispatchQueue.main.async {
+                        self.items = newItems
+                        if migrationNeeded {
+                            print("Migrated \(newItems.count) items from legacy format")
+                            self.save()
+                        } else {
+                            print("Loaded \(newItems.count) items (compatible format)")
+                        }
+                    }
+                    return
+                }
+
+                // 2. Fallback to New Format
+                let loaded = try JSONDecoder().decode([HistoryItem].self, from: data)
                 DispatchQueue.main.async {
                     self.items = loaded
                     print("Loaded \(loaded.count) items from disk")
                 }
+
             } catch {
                 print("Failed to load history: \(error)")
             }
@@ -156,10 +195,13 @@ class ClipboardMonitor: ObservableObject {
                    utType.conforms(to: .image) {
                     
                     if let data = try? Data(contentsOf: firstURL) {
-                         // Check duplicate
-                         if let first = items.first, case .image(let oldData) = first.type, oldData.count == data.count { return }
+                         // Check duplicate based on content name only for performance
+                         if let first = items.first, first.content == firstURL.lastPathComponent { return }
                          
-                         let newItem = HistoryItem(content: firstURL.lastPathComponent, type: .image(data), appBundleID: bundleID, appName: appName)
+                         let imageID = UUID().uuidString
+                         ImageStore.shared.save(data: data, id: imageID)
+
+                         let newItem = HistoryItem(content: firstURL.lastPathComponent, type: .image(imageID), appBundleID: bundleID, appName: appName)
                          print("Detected file copy: Image from \(appName ?? "Unknown")")
                          DispatchQueue.main.async { self.items.insert(newItem, at: 0) }
                          return
@@ -174,9 +216,12 @@ class ClipboardMonitor: ObservableObject {
                let firstImage = images.first,
                let tiffData = firstImage.tiffRepresentation {
                  
-                 if let first = items.first, case .image(let data) = first.type, data.count == tiffData.count { return }
+                 // Skip duplicate check for raw images to avoid loading old image data
+
+                 let imageID = UUID().uuidString
+                 ImageStore.shared.save(data: tiffData, id: imageID)
                  
-                 let newItem = HistoryItem(content: "Image Clip", type: .image(tiffData), appBundleID: bundleID, appName: appName)
+                 let newItem = HistoryItem(content: "Image Clip", type: .image(imageID), appBundleID: bundleID, appName: appName)
                  print("Detected image copy from \(appName ?? "Unknown")")
                  DispatchQueue.main.async { self.items.insert(newItem, at: 0) }
                  return
@@ -207,8 +252,9 @@ class ClipboardMonitor: ObservableObject {
         switch item.type {
         case .text, .link:
             success = pasteboard.writeObjects([item.content as NSString])
-        case .image(let data):
-            if let image = NSImage(data: data) {
+        case .image(let id):
+            if let data = ImageStore.shared.load(id: id),
+               let image = NSImage(data: data) {
                 success = pasteboard.writeObjects([image])
             }
         }
