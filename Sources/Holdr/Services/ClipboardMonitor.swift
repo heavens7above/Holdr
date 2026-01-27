@@ -15,7 +15,11 @@ class ClipboardMonitor: ObservableObject {
     init() {
         // Load existing history
         load()
-        saveLogo()
+
+        // Save logo in background to avoid blocking main thread
+        DispatchQueue.global(qos: .utility).async {
+            self.saveLogo()
+        }
         
         // Start monitoring
         Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { _ in
@@ -63,7 +67,10 @@ class ClipboardMonitor: ObservableObject {
             appLogo.draw(in: NSRect(origin: logoOrigin, size: logoSize), from: .zero, operation: .sourceOver, fraction: 1.0)
             newIcon.unlockFocus()
             
-            NSWorkspace.shared.setIcon(newIcon, forFile: folderURL.path, options: [])
+            // UI updates must be on main thread
+            DispatchQueue.main.async {
+                NSWorkspace.shared.setIcon(newIcon, forFile: folderURL.path, options: [])
+            }
         }
     }
     
