@@ -53,8 +53,11 @@ struct ContentView: View {
                                     switch item.type {
                                     case .text, .link:
                                         return NSItemProvider(object: item.content as NSString)
-                                    case .image(let data):
-                                        return NSItemProvider(item: data as NSData, typeIdentifier: "public.tiff")
+                                    case .image(let id):
+                                        if let data = ImageStore.shared.load(id: id) {
+                                            return NSItemProvider(item: data as NSData, typeIdentifier: "public.tiff")
+                                        }
+                                        return NSItemProvider()
                                     }
                                 }
                         }

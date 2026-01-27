@@ -17,7 +17,7 @@ struct ClipCardView: View {
             }
             
             VStack(alignment: .leading, spacing: 4) {
-                if case .image(let data) = item.type, let nsImage = NSImage(data: data) {
+                if case .image(let id) = item.type, let nsImage = ImageStore.shared.loadImage(id: id) {
                      Image(nsImage: nsImage)
                          .resizable()
                          .aspectRatio(contentMode: .fit)
