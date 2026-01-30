@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ClipCardView: View {
     let item: HistoryItem
+    @State private var isHovering = false
     
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
@@ -45,13 +46,27 @@ struct ClipCardView: View {
             Spacer()
         }
         .padding(12)
-        .background(Color(nsColor: .controlBackgroundColor))
+        .background(
+            isHovering ? Color(nsColor: .selectedControlColor).opacity(0.1) : Color(nsColor: .controlBackgroundColor)
+        )
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .stroke(Color(nsColor: .separatorColor), lineWidth: 0.5)
+                .stroke(
+                    isHovering ? Color.accentColor.opacity(0.5) : Color(nsColor: .separatorColor),
+                    lineWidth: isHovering ? 1 : 0.5
+                )
         )
+        .onHover { hovering in
+            withAnimation(.easeInOut(duration: 0.2)) {
+                isHovering = hovering
+            }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(accessibilityLabel)
+        .accessibilityHint("Double tap to copy to clipboard")
+        .accessibilityAddTraits(.isButton)
     }
     
     var iconName: String {
@@ -60,5 +75,15 @@ struct ClipCardView: View {
         case .link: return "link"
         case .image: return "photo"
         }
+    }
+
+    var accessibilityLabel: Text {
+        let typeDescription: String
+        switch item.type {
+        case .text: typeDescription = "Text"
+        case .link: typeDescription = "Link"
+        case .image: typeDescription = "Image"
+        }
+        return Text("\(typeDescription), \(item.content)")
     }
 }
