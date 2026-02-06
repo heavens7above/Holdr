@@ -3,6 +3,13 @@ import SwiftUI
 struct ClipCardView: View {
     let item: HistoryItem
     @State private var isHovering = false
+
+    private static let dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.timeStyle = .short
+        formatter.dateStyle = .none
+        return formatter
+    }()
     @State private var decodedImage: NSImage?
     @State private var hasFailedDecoding = false
     
@@ -54,6 +61,10 @@ struct ClipCardView: View {
             Spacer()
         }
         .padding(12)
+        .background(
+            isHovering ?
+            Color(nsColor: .selectedControlColor).opacity(0.1) :
+            Color(nsColor: .controlBackgroundColor)
         .background(isHovering ? Color(nsColor: .selectedControlColor).opacity(0.1) : Color(nsColor: .controlBackgroundColor))
         .background(
             isHovering ? Color(nsColor: .selectedControlColor).opacity(0.1) : Color(nsColor: .controlBackgroundColor)
@@ -72,6 +83,12 @@ struct ClipCardView: View {
                     isHovering ? Color.accentColor.opacity(0.5) : Color(nsColor: .separatorColor),
                     lineWidth: 0.5
                 )
+        )
+        .scaleEffect(isHovering ? 1.01 : 1.0)
+        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isHovering)
+        .onHover { isHovering = $0 }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(accessibilityLabel)
                 .stroke(isHovering ? Color.accentColor.opacity(0.5) : Color(nsColor: .separatorColor), lineWidth: 0.5)
         )
         .onHover { hovering in
@@ -129,6 +146,7 @@ struct ClipCardView: View {
         }
     }
 
+    var accessibilityLabel: String {
     var accessibilityLabelString: String {
         let typeStr: String
         switch item.type {
@@ -136,6 +154,22 @@ struct ClipCardView: View {
         case .link: typeStr = "Link"
         case .image: typeStr = "Image"
         }
+
+        var label = "\(typeStr) clip"
+        if let appName = item.appName {
+            label += " from \(appName)"
+        }
+
+        if case .text = item.type {
+            label += ": \(item.content)"
+        } else if case .link = item.type {
+            label += ": \(item.content)"
+        }
+
+        // Use static formatter
+        label += ". Copied at \(Self.dateFormatter.string(from: item.date))"
+
+        return label
         return "\(typeStr) from \(item.appName ?? "Unknown application"), \(item.content)"
     var accessibilityLabel: String {
         let typeDesc: String
