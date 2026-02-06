@@ -88,9 +88,8 @@ class ClipboardMonitor: ObservableObject {
             // Draw base folder
             folderIcon.draw(in: NSRect(origin: .zero, size: folderIcon.size))
             
-            // Draw logo centered and scaled (e.g. 50% size)
-            // Adjust scale as needed to match standard macOS look
-            let scale: CGFloat = 0.5
+            // Draw logo centered and scaled
+            let scale: CGFloat = 0.6
             let logoSize = NSSize(width: folderIcon.size.width * scale, height: folderIcon.size.height * scale)
             let logoOrigin = NSPoint(
                 x: (folderIcon.size.width - logoSize.width) / 2,
