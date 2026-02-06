@@ -11,6 +11,7 @@ class ClipboardMonitor: ObservableObject {
     }
     private var changeCount = 0
     private let pasteboard = NSPasteboard.general
+    private let persistenceManager = PersistenceManager.shared
 
     // Legacy support structure for migration
     private struct LegacyHistoryItem: Codable {
@@ -104,6 +105,21 @@ class ClipboardMonitor: ObservableObject {
         }
     }
     
+    // Legacy support for migration
+    private struct LegacyHistoryItem: Codable {
+        let content: String
+        let type: LegacyItemType
+        let date: Date
+        let appBundleID: String?
+        let appName: String?
+
+        enum LegacyItemType: Codable {
+            case text
+            case link(URL)
+            case image(Data)
+        }
+    }
+
     private func load() {
         // Load in background to prevent blocking main thread (CRASH FIX)
         DispatchQueue.global(qos: .userInitiated).async {
