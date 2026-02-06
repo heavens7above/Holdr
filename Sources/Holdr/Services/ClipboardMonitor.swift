@@ -253,12 +253,17 @@ class ClipboardMonitor: ObservableObject {
             var handledAsFile = false
             if let urls = pasteboard.readObjects(forClasses: [NSURL.self], options: nil) as? [URL], let firstURL = urls.first {
                 // Is it an image file?
-                if let typeID = try? firstURL.resourceValues(forKeys: [.typeIdentifierKey]).typeIdentifier,
-                   let utType = UTType(typeID),
-                   utType.conforms(to: .image) {
+                // OPTIMIZATION: Check extension first to avoid main thread I/O
+                let ext = firstURL.pathExtension
+                if !ext.isEmpty, let utType = UTType(filenameExtension: ext), utType.conforms(to: .image) {
                     
                     // Load in background to avoid blocking main thread
                     DispatchQueue.global(qos: .userInitiated).async {
+                        // Double check with resource values (robust check off main thread)
+                        guard let typeID = try? firstURL.resourceValues(forKeys: [.typeIdentifierKey]).typeIdentifier,
+                              let fileType = UTType(typeID),
+                              fileType.conforms(to: .image) else { return }
+
                         if let data = try? Data(contentsOf: firstURL) {
                             DispatchQueue.main.async {
                                 // Check duplicate
