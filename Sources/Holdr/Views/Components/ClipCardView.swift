@@ -2,6 +2,8 @@ import SwiftUI
 
 struct ClipCardView: View {
     let item: HistoryItem
+    @State private var decodedImage: NSImage?
+    @State private var hasFailedDecoding = false
     
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
@@ -17,17 +19,21 @@ struct ClipCardView: View {
             }
             
             VStack(alignment: .leading, spacing: 4) {
-                if case .image(let data) = item.type, let nsImage = NSImage(data: data) {
-                     Image(nsImage: nsImage)
-                         .resizable()
-                         .aspectRatio(contentMode: .fit)
-                         .frame(maxHeight: 120)
-                         .cornerRadius(8)
+                if case .image = item.type {
+                    if let nsImage = decodedImage {
+                        Image(nsImage: nsImage)
+                             .resizable()
+                             .aspectRatio(contentMode: .fit)
+                             .frame(maxHeight: 120)
+                             .cornerRadius(8)
+                    } else if hasFailedDecoding {
+                        textContent
+                    } else {
+                        // Loading state placeholder - keeps layout stable during load
+                        Color.clear.frame(height: 120)
+                    }
                 } else {
-                    Text(item.content)
-                        .lineLimit(2)
-                        .font(.system(.body, design: .rounded))
-                        .foregroundColor(.primary)
+                    textContent
                 }
                 
                 HStack {
