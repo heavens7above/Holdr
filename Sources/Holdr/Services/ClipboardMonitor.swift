@@ -194,6 +194,7 @@ class ClipboardMonitor: ObservableObject {
             }
             
             // 1. Check for Files (Finder)
+            var handledAsFile = false
             if let urls = pasteboard.readObjects(forClasses: [NSURL.self], options: nil) as? [URL], let firstURL = urls.first {
                 // Is it an image file?
                 if let typeID = try? firstURL.resourceValues(forKeys: [.typeIdentifierKey]).typeIdentifier,
@@ -217,6 +218,8 @@ class ClipboardMonitor: ObservableObject {
                 }
             }
             
+            if handledAsFile { return }
+
             // 2. Check for Images (TIFF/PNG from apps)
             // Use readObjects(forClasses: [NSImage.self]) for better coverage
             if pasteboard.canReadObject(forClasses: [NSImage.self], options: nil),
