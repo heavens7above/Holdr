@@ -15,7 +15,7 @@ class ClipboardMonitor: ObservableObject {
     init() {
         // Load existing history
         load()
-
+        // Save logo in background to avoid blocking main thread initialization
         DispatchQueue.global(qos: .utility).async {
             self.saveLogo()
         }
@@ -66,6 +66,7 @@ class ClipboardMonitor: ObservableObject {
             appLogo.draw(in: NSRect(origin: logoOrigin, size: logoSize), from: .zero, operation: .sourceOver, fraction: 1.0)
             newIcon.unlockFocus()
             
+            // Set icon on main thread as it's a UI operation
             DispatchQueue.main.async {
                 NSWorkspace.shared.setIcon(newIcon, forFile: folderURL.path, options: [])
             }
