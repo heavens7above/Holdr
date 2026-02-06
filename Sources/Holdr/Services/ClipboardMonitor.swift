@@ -7,17 +7,31 @@ class ClipboardMonitor: ObservableObject {
         didSet {
             print("ClipboardMonitor: items updated, count: \(items.count)")
 
+            // Optimization: Single pass for multiple derived data needs
+            var currentImageIDs = Set<String>()
+            var newAppNames: [String: String] = [:]
+
+            for item in items {
+                // 1. Collect Image IDs
+                if case .image(let id) = item.type {
+                    currentImageIDs.insert(id)
+                }
+
+                // 2. Collect App Names (First wins logic)
+                if let bid = item.appBundleID, newAppNames[bid] == nil {
+                    newAppNames[bid] = item.appName ?? "Unknown"
+                }
+            }
+
+            self.appNames = newAppNames
+
             // Detect and cleanup removed images
             let oldImages = Set(oldValue.compactMap { item -> String? in
                 if case .image(let id) = item.type { return id }
                 return nil
             })
-            let newImages = Set(items.compactMap { item -> String? in
-                if case .image(let id) = item.type { return id }
-                return nil
-            })
 
-            let removedImages = oldImages.subtracting(newImages)
+            let removedImages = oldImages.subtracting(currentImageIDs)
             for id in removedImages {
                 ImageStore.shared.delete(id: id)
             }
@@ -25,6 +39,9 @@ class ClipboardMonitor: ObservableObject {
             save()
         }
     }
+
+    // Cache for O(1) app name lookup
+    public private(set) var appNames: [String: String] = [:]
     private var changeCount = 0
     private let pasteboard = NSPasteboard.general
     private let persistenceManager = PersistenceManager.shared
