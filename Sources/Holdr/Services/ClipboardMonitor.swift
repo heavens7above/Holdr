@@ -3,8 +3,20 @@ import AppKit
 import UniformTypeIdentifiers
 
 class ClipboardMonitor: ObservableObject {
+    var historyApps: [String: String] = [:]
+
+    private func updateCache() {
+        var apps: [String: String] = [:]
+        for item in items {
+            if let bid = item.appBundleID, apps[bid] == nil {
+                apps[bid] = item.appName ?? "Unknown"
+            }
+        }
+        historyApps = apps
+    }
     @Published var items: [HistoryItem] = [] {
         didSet {
+            updateCache()
             print("ClipboardMonitor: items updated, count: \(items.count)")
 
             // Detect and cleanup removed images

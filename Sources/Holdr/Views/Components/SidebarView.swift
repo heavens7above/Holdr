@@ -53,23 +53,12 @@ struct SidebarView: View {
 
     private var otherApps: [HistoryAppDisplay] {
         let runningBundleIDs = Set(appDiscovery.runningApps.map { $0.bundleID })
+        let historyApps = clipboardMonitor.historyApps
 
-        // Single pass to collect bundle IDs and names
-        var apps: [String: String] = [:]
-        for item in clipboardMonitor.items {
-            if let bid = item.appBundleID {
-                // Keep the first name encountered to match original behavior
-                if apps[bid] == nil {
-                    apps[bid] = item.appName ?? "Unknown"
-                }
-            }
-        }
-
-        let historyBundleIDs = Set(apps.keys)
-        let uniqueBundleIDs = historyBundleIDs.subtracting(runningBundleIDs)
+        let uniqueBundleIDs = Set(historyApps.keys).subtracting(runningBundleIDs)
 
         return uniqueBundleIDs.sorted().compactMap { bundleID in
-            guard let name = apps[bundleID] else { return nil }
+            guard let name = historyApps[bundleID] else { return nil }
             return HistoryAppDisplay(bundleID: bundleID, name: name)
         }
     }
