@@ -379,7 +379,9 @@ class ClipboardMonitor: ObservableObject {
         
         if success {
             print("Successfully wrote to clipboard")
-            // Temporarily ignore next change if we want, or rely on bundle ID check
+            // Update local changeCount to match the new pasteboard state
+            // to avoid detecting our own write as a new change.
+            self.changeCount = pasteboard.changeCount
         } else {
             print("Failed to write to clipboard")
         }
