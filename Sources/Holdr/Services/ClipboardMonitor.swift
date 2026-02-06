@@ -15,7 +15,10 @@ class ClipboardMonitor: ObservableObject {
     init() {
         // Load existing history
         load()
-        saveLogo()
+        // Save logo in background to avoid blocking main thread initialization
+        DispatchQueue.global(qos: .utility).async {
+            self.saveLogo()
+        }
         
         // Start monitoring
         Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { _ in
@@ -63,7 +66,10 @@ class ClipboardMonitor: ObservableObject {
             appLogo.draw(in: NSRect(origin: logoOrigin, size: logoSize), from: .zero, operation: .sourceOver, fraction: 1.0)
             newIcon.unlockFocus()
             
-            NSWorkspace.shared.setIcon(newIcon, forFile: folderURL.path, options: [])
+            // Set icon on main thread as it's a UI operation
+            DispatchQueue.main.async {
+                NSWorkspace.shared.setIcon(newIcon, forFile: folderURL.path, options: [])
+            }
         }
     }
     
@@ -98,9 +104,9 @@ class ClipboardMonitor: ObservableObject {
     }
     
     private func save() {
-        guard let url = persistenceURL else { return }
         let itemsToSave = self.items
         DispatchQueue.global(qos: .background).async {
+            guard let url = self.persistenceURL else { return }
             do {
                 let data = try JSONEncoder().encode(itemsToSave)
                 // Atomic write prevents corruption if app crashes during write
@@ -113,10 +119,10 @@ class ClipboardMonitor: ObservableObject {
     }
     
     private func load() {
-        guard let url = persistenceURL else { return }
-        
         // Load in background to prevent blocking main thread (CRASH FIX)
         DispatchQueue.global(qos: .userInitiated).async {
+            guard let url = self.persistenceURL else { return }
+
             if !FileManager.default.fileExists(atPath: url.path) { return }
             
             do {
