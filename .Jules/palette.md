@@ -1,3 +1,8 @@
+# Palette's Journal
+
+## 2024-05-22 - ClipCardView Accessibility & Interactivity
+**Learning:** List items in custom SwiftUI views often lack native hover states and accessible grouping, requiring manual implementation of `.onHover` and `.accessibilityElement(children: .combine)`.
+**Action:** Always wrap custom list rows in an accessibility element and add visual feedback states manually when not using standard `List` styles.
 ## 2026-01-30 - Custom List Item Interactivity
 **Learning:** SwiftUI `List` rows using `onTapGesture` instead of `Button` lack native hover feedback and accessibility traits on macOS.
 **Action:** When creating custom list items, manually implement `.onHover` for visual feedback and add `.accessibilityAddTraits(.isButton)` to ensure screen readers recognize the item as actionable.

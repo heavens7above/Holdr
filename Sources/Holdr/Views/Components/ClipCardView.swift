@@ -67,6 +67,10 @@ struct ClipCardView: View {
         .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
         .overlay(
             RoundedRectangle(cornerRadius: 12)
+                .stroke(
+                    isHovering ? Color.accentColor.opacity(0.5) : Color(nsColor: .separatorColor),
+                    lineWidth: 0.5
+                )
                 .stroke(isHovering ? Color.accentColor.opacity(0.5) : Color(nsColor: .separatorColor), lineWidth: 0.5)
         )
         .onHover { hovering in
@@ -75,6 +79,7 @@ struct ClipCardView: View {
             }
         }
         .accessibilityElement(children: .ignore)
+        .accessibilityLabel(accessibilityLabelString)
         .accessibilityLabel(accessibilityLabel)
         .accessibilityHint("Copies content to clipboard")
         .accessibilityElement(children: .ignore)
@@ -91,6 +96,14 @@ struct ClipCardView: View {
         }
     }
 
+    var accessibilityLabelString: String {
+        let typeStr: String
+        switch item.type {
+        case .text: typeStr = "Text"
+        case .link: typeStr = "Link"
+        case .image: typeStr = "Image"
+        }
+        return "\(typeStr) from \(item.appName ?? "Unknown application"), \(item.content)"
     var accessibilityLabel: String {
         let typeDesc: String
         switch item.type {
