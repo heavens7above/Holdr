@@ -45,6 +45,9 @@ class AppDiscovery: ObservableObject {
             let apps = NSWorkspace.shared.runningApplications
                 .filter { $0.activationPolicy == .regular } // Only normal apps (with Dock icon)
                 .sorted { ($0.localizedName ?? "") < ($1.localizedName ?? "") }
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            let apps = NSWorkspace.shared.runningApplications
+                .filter { $0.activationPolicy == .regular } // Only normal apps (with Dock icon)
             
             let appInfos = apps.compactMap { app -> AppInfo? in
                 guard let bundleID = app.bundleIdentifier,
