@@ -2,6 +2,8 @@ import SwiftUI
 
 struct ClipCardView: View {
     let item: HistoryItem
+    @State private var decodedImage: NSImage?
+    @State private var hasFailedDecoding = false
     
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
@@ -18,18 +20,21 @@ struct ClipCardView: View {
             .accessibilityHidden(true)
             
             VStack(alignment: .leading, spacing: 4) {
-                if case .image(let data) = item.type, let nsImage = NSImage(data: data) {
-                     Image(nsImage: nsImage)
-                         .resizable()
-                         .aspectRatio(contentMode: .fit)
-                         .frame(maxHeight: 120)
-                         .cornerRadius(8)
-                         .accessibilityHidden(true)
+                if case .image = item.type {
+                    if let nsImage = decodedImage {
+                        Image(nsImage: nsImage)
+                             .resizable()
+                             .aspectRatio(contentMode: .fit)
+                             .frame(maxHeight: 120)
+                             .cornerRadius(8)
+                    } else if hasFailedDecoding {
+                        textContent
+                    } else {
+                        // Loading state placeholder - keeps layout stable during load
+                        Color.clear.frame(height: 120)
+                    }
                 } else {
-                    Text(item.content)
-                        .lineLimit(2)
-                        .font(.system(.body, design: .rounded))
-                        .foregroundColor(.primary)
+                    textContent
                 }
                 
                 HStack {
@@ -56,9 +61,8 @@ struct ClipCardView: View {
                 .stroke(Color(nsColor: .separatorColor), lineWidth: 0.5)
         )
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(a11yLabel)
-        .accessibilityValue(a11yValue)
-        .accessibilityHint("Copies content to clipboard")
+        .accessibilityLabel(accessibilityLabelText)
+        .accessibilityHint("Double tap to copy to clipboard")
         .accessibilityAddTraits(.isButton)
     }
     
@@ -70,19 +74,30 @@ struct ClipCardView: View {
         }
     }
 
-    var a11yLabel: String {
+    private var accessibilityLabelText: String {
+        let typeString: String
+        let contentDescription: String
+
         switch item.type {
         case .text:
-            return "Text: \(item.content)"
+            typeString = "Text"
+            contentDescription = item.content
         case .link:
-            return "Link: \(item.content)"
+            typeString = "Link"
+            contentDescription = item.content
         case .image:
-            return "Copied Image"
+            typeString = "Image"
+            contentDescription = ""
         }
-    }
 
-    var a11yValue: String {
+        let appString = item.appName.map { ", from \($0)" } ?? ""
         let timeString = item.date.formatted(date: .omitted, time: .shortened)
-        return "Copied at \(timeString)"
+
+        // Truncate long content for accessibility
+        let truncatedContent = contentDescription.prefix(100)
+        let ellipsis = contentDescription.count > 100 ? "..." : ""
+        let contentPart = contentDescription.isEmpty ? "" : ". \(truncatedContent)\(ellipsis)"
+
+        return "\(typeString)\(appString)\(contentPart). Copied at \(timeString)"
     }
 }
