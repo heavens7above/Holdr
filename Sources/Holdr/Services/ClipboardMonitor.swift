@@ -89,18 +89,10 @@ class ClipboardMonitor: ObservableObject {
     }
     
     private func saveLogo() {
-        // 1. Save logo file inside the folder (as requested previously)
-        guard let folderURL = PersistenceManager.shared.persistenceDirectory else { return }
-        let logoURL = folderURL.appendingPathComponent("logo.png")
-        
-        // Try module first (SPM), then main (App Bundle)
-        var resourceURL = Bundle.module.url(forResource: "logo", withExtension: "png")
-        if resourceURL == nil {
-             resourceURL = Bundle.main.url(forResource: "logo", withExtension: "png")
-        }
-        
-        if let bundleLogo = resourceURL,
-           let appLogo = NSImage(contentsOf: bundleLogo) {
+        DispatchQueue.global(qos: .utility).async {
+            // 1. Save logo file inside the folder (as requested previously)
+            guard let folderURL = PersistenceManager.shared.persistenceDirectory else { return }
+            let logoURL = folderURL.appendingPathComponent("logo.png")
             
             // Try module first (SPM), then main (App Bundle)
             var resourceURL = Bundle.module.url(forResource: "logo", withExtension: "png")
