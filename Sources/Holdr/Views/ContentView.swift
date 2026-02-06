@@ -56,8 +56,9 @@ struct ContentView: View {
                                     case .image(let id):
                                         if let data = ImageStore.shared.load(id: id) {
                                             return NSItemProvider(item: data as NSData, typeIdentifier: "public.tiff")
+                                        } else {
+                                            return NSItemProvider()
                                         }
-                                        return NSItemProvider()
                                     }
                                 }
                         }

@@ -25,14 +25,16 @@ class ImageStore {
         return try? Data(contentsOf: url)
     }
 
-    func loadImage(id: String) -> NSImage? {
-        guard let data = load(id: id) else { return nil }
-        return NSImage(data: data)
-    }
-
     func delete(id: String) {
         guard let dir = persistenceManager.imagesDirectoryURL else { return }
         let url = dir.appendingPathComponent(id)
         try? FileManager.default.removeItem(at: url)
+    }
+
+    func loadImage(id: String) -> NSImage? {
+        if let data = load(id: id) {
+            return NSImage(data: data)
+        }
+        return nil
     }
 }

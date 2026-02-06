@@ -5,7 +5,7 @@ class PersistenceManager {
 
     private let fileManager = FileManager.default
 
-    var rootDirectory: URL? {
+    var persistenceDirectory: URL? {
         // 1. Try standard iCloud container (if entitled)
         if let iCloudDocs = fileManager.url(forUbiquityContainerIdentifier: nil)?.appendingPathComponent("Documents") {
              try? fileManager.createDirectory(at: iCloudDocs, withIntermediateDirectories: true)
@@ -18,7 +18,7 @@ class PersistenceManager {
         let iCloudDrive = home.appendingPathComponent("Library/Mobile Documents/com~apple~CloudDocs")
 
         if fileManager.fileExists(atPath: iCloudDrive.path) {
-             let folder = iCloudDrive.appendingPathComponent("PastePalClone") // Keeping the original folder name for compatibility
+             let folder = iCloudDrive.appendingPathComponent("PastePalClone")
              // Ensure folder exists
              try? fileManager.createDirectory(at: folder, withIntermediateDirectories: true)
              return folder
@@ -35,14 +35,19 @@ class PersistenceManager {
     }
 
     var historyFileURL: URL? {
-        return rootDirectory?.appendingPathComponent("history.json")
+        return persistenceDirectory?.appendingPathComponent("history.json")
     }
 
     var imagesDirectoryURL: URL? {
-        guard let root = rootDirectory else { return nil }
-        let imagesDir = root.appendingPathComponent("images")
+        guard let dir = persistenceDirectory else { return nil }
+        let imagesDir = dir.appendingPathComponent("images")
+        // Create directory if it doesn't exist
         if !fileManager.fileExists(atPath: imagesDir.path) {
-            try? fileManager.createDirectory(at: imagesDir, withIntermediateDirectories: true)
+            do {
+                try fileManager.createDirectory(at: imagesDir, withIntermediateDirectories: true)
+            } catch {
+                print("PersistenceManager: Failed to create images directory: \(error)")
+            }
         }
         return imagesDir
     }
