@@ -130,16 +130,11 @@ struct ContentView: View {
     }
     
     private func deleteItems(at offsets: IndexSet) {
-        // Need to find which items correspond to the offsets in filtered view
-        // Is slightly complex with filtering, so simplistic approach for MVP:
-        // Delete from monitor if it matches
         let itemsToDelete = offsets.map { filteredItems[$0] }
-        itemsToDelete.forEach { deleteItem($0) }
+        clipboardMonitor.deleteItems(itemsToDelete)
     }
     
     private func deleteItem(_ item: HistoryItem) {
-        if let index = clipboardMonitor.items.firstIndex(where: { $0.id == item.id }) {
-            clipboardMonitor.items.remove(at: index)
-        }
+        clipboardMonitor.deleteItems([item])
     }
 }
