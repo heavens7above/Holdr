@@ -29,6 +29,11 @@ class ClipboardMonitor: ObservableObject {
     private let pasteboard = NSPasteboard.general
     private let persistenceManager = PersistenceManager.shared
 
+    // Optimized Persistence URL
+    private var persistenceURL: URL? {
+        return persistenceManager.historyFileURL
+    }
+
     // Legacy support structure for migration
     private struct LegacyHistoryItem: Codable {
         let id: UUID

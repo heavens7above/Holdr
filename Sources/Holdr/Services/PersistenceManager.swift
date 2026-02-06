@@ -4,8 +4,23 @@ class PersistenceManager {
     static let shared = PersistenceManager()
 
     private let fileManager = FileManager.default
+    private let lock = NSLock()
+    private var _persistenceDirectory: URL?
 
     var persistenceDirectory: URL? {
+        lock.lock()
+        defer { lock.unlock() }
+
+        if let existing = _persistenceDirectory {
+            return existing
+        }
+
+        let calculated = computePersistenceDirectory()
+        _persistenceDirectory = calculated
+        return calculated
+    }
+
+    private func computePersistenceDirectory() -> URL? {
         // 1. Try standard iCloud container (if entitled)
         if let iCloudDocs = fileManager.url(forUbiquityContainerIdentifier: nil)?.appendingPathComponent("Documents") {
              try? fileManager.createDirectory(at: iCloudDocs, withIntermediateDirectories: true)
@@ -42,6 +57,8 @@ class PersistenceManager {
         guard let dir = persistenceDirectory else { return nil }
         let imagesDir = dir.appendingPathComponent("images")
         // Create directory if it doesn't exist
+        // Optimization: We could cache this too, but for now we rely on OS caching for fileExists
+        // or we can optimize it similarly if needed. The task focused on persistenceURL.
         if !fileManager.fileExists(atPath: imagesDir.path) {
             do {
                 try fileManager.createDirectory(at: imagesDir, withIntermediateDirectories: true)
