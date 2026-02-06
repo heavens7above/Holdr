@@ -88,9 +88,8 @@ class ClipboardMonitor: ObservableObject {
             // Draw base folder
             folderIcon.draw(in: NSRect(origin: .zero, size: folderIcon.size))
             
-            // Draw logo centered and scaled (e.g. 50% size)
-            // Adjust scale as needed to match standard macOS look
-            let scale: CGFloat = 0.5
+            // Draw logo centered and scaled
+            let scale: CGFloat = 0.6
             let logoSize = NSSize(width: folderIcon.size.width * scale, height: folderIcon.size.height * scale)
             let logoOrigin = NSPoint(
                 x: (folderIcon.size.width - logoSize.width) / 2,
@@ -254,12 +253,17 @@ class ClipboardMonitor: ObservableObject {
             var handledAsFile = false
             if let urls = pasteboard.readObjects(forClasses: [NSURL.self], options: nil) as? [URL], let firstURL = urls.first {
                 // Is it an image file?
-                if let typeID = try? firstURL.resourceValues(forKeys: [.typeIdentifierKey]).typeIdentifier,
-                   let utType = UTType(typeID),
-                   utType.conforms(to: .image) {
+                // OPTIMIZATION: Check extension first to avoid main thread I/O
+                let ext = firstURL.pathExtension
+                if !ext.isEmpty, let utType = UTType(filenameExtension: ext), utType.conforms(to: .image) {
                     
                     // Load in background to avoid blocking main thread
                     DispatchQueue.global(qos: .userInitiated).async {
+                        // Double check with resource values (robust check off main thread)
+                        guard let typeID = try? firstURL.resourceValues(forKeys: [.typeIdentifierKey]).typeIdentifier,
+                              let fileType = UTType(typeID),
+                              fileType.conforms(to: .image) else { return }
+
                         if let data = try? Data(contentsOf: firstURL) {
                             DispatchQueue.main.async {
                                 // Check duplicate
@@ -351,11 +355,11 @@ class ClipboardMonitor: ObservableObject {
             print("Failed to write to clipboard")
         }
     }
-
     func deleteItems(_ itemsToDelete: [HistoryItem]) {
         let idsToDelete = Set(itemsToDelete.map { $0.id })
         items.removeAll { idsToDelete.contains($0.id) }
     }
+
 }
 
 // Legacy structure for migration

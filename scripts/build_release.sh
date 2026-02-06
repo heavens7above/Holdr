@@ -34,12 +34,21 @@ xcrun actool Sources/Holdr/Resources/Assets.xcassets --compile "${APP_BUNDLE}/Co
 
 
 # Convert iconset to icns
+echo "Generating AppIcon.icns..."
+ICONSET_DIR="temp.iconset"
+mkdir -p "$ICONSET_DIR"
+cp "Sources/Holdr/Resources/Assets.xcassets/AppIcon.appiconset/icon_256x256.png" "$ICONSET_DIR/icon_256x256.png"
+cp "Sources/Holdr/Resources/Assets.xcassets/AppIcon.appiconset/icon_512x512.png" "$ICONSET_DIR/icon_256x256@2x.png"
+cp "Sources/Holdr/Resources/Assets.xcassets/AppIcon.appiconset/icon_512x512.png" "$ICONSET_DIR/icon_512x512.png"
+cp "Sources/Holdr/Resources/Assets.xcassets/AppIcon.appiconset/icon_1024x1024.png" "$ICONSET_DIR/icon_512x512@2x.png"
 
+iconutil -c icns "$ICONSET_DIR" -o "${APP_BUNDLE}/Contents/Resources/AppIcon.icns"
+rm -rf "$ICONSET_DIR"
 
 
 # 5. Create Info.plist
 echo "Generating Info.plist..."
-cat > "${APP_BUNDLE}/Contents/Info.plist" <<EOF
+cat > "${APP_BUNDLE}/Contents/Info.plist" <<PLIST_EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -64,7 +73,7 @@ cat > "${APP_BUNDLE}/Contents/Info.plist" <<EOF
     <true/>
 </dict>
 </plist>
-EOF
+PLIST_EOF
 
 # 6. Sign
 echo "Signing application..."
