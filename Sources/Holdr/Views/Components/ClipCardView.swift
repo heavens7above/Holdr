@@ -61,6 +61,7 @@ struct ClipCardView: View {
             Spacer()
         }
         .padding(12)
+        .background(isHovering ? Color(nsColor: .selectedControlColor).opacity(0.1) : Color(nsColor: .controlBackgroundColor))
         .background(
             isHovering ?
             Color(nsColor: .selectedControlColor).opacity(0.1) :
@@ -79,6 +80,24 @@ struct ClipCardView: View {
         .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
         .overlay(
             RoundedRectangle(cornerRadius: 12)
+                .stroke(isHovering ? Color.accentColor.opacity(0.5) : Color(nsColor: .separatorColor), lineWidth: 0.5)
+        )
+        .onHover { isHovering = $0 }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(accessibilityLabelString)
+        .accessibilityHint("Click to copy to clipboard")
+        .accessibilityAddTraits(.isButton)
+    }
+
+    var accessibilityLabelString: String {
+        let typeString: String
+        switch item.type {
+        case .text: typeString = "Text"
+        case .link: typeString = "Link"
+        case .image: typeString = "Image"
+        }
+
+        return "\(typeString) from \(item.appName ?? "Unknown App"). \(item.content)"
                 .stroke(
                     isHovering ? Color.accentColor.opacity(0.5) : Color(nsColor: .separatorColor),
                     lineWidth: 0.5
