@@ -39,6 +39,12 @@ final class PerformanceTests: XCTestCase {
             // Measure the cost of decoding
             let image = NSImage(data: data)
             XCTAssertNotNil(image)
+@testable import Holdr
+
+final class PerformanceTests: XCTestCase {
+    func testInitializationPerformance() {
+        measure {
+            let _ = ClipboardMonitor()
         }
     }
 }

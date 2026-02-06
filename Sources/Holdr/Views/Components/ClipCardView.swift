@@ -58,16 +58,10 @@ struct ClipCardView: View {
             RoundedRectangle(cornerRadius: 12)
                 .stroke(Color(nsColor: .separatorColor), lineWidth: 0.5)
         )
-        .task(id: item.id) {
-            await loadContent()
-        }
-    }
-
-    var textContent: some View {
-        Text(item.content)
-            .lineLimit(2)
-            .font(.system(.body, design: .rounded))
-            .foregroundColor(.primary)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(accessibilityLabelText)
+        .accessibilityHint("Double tap to copy to clipboard")
+        .accessibilityAddTraits(.isButton)
     }
     
     var iconName: String {
@@ -78,25 +72,30 @@ struct ClipCardView: View {
         }
     }
 
-    private func loadContent() async {
-        guard case .image(let data) = item.type else { return }
+    private var accessibilityLabelText: String {
+        let typeString: String
+        let contentDescription: String
 
-        let key = item.id.uuidString
-        if let cached = ImageCache.shared.image(forKey: key) {
-            self.decodedImage = cached
-            return
+        switch item.type {
+        case .text:
+            typeString = "Text"
+            contentDescription = item.content
+        case .link:
+            typeString = "Link"
+            contentDescription = item.content
+        case .image:
+            typeString = "Image"
+            contentDescription = ""
         }
 
-        // Decode off main thread
-        let image = await Task.detached {
-            return NSImage(data: data)
-        }.value
+        let appString = item.appName.map { ", from \($0)" } ?? ""
+        let timeString = item.date.formatted(date: .omitted, time: .shortened)
 
-        if let image = image {
-            ImageCache.shared.insert(image, forKey: key)
-            self.decodedImage = image
-        } else {
-            self.hasFailedDecoding = true
-        }
+        // Truncate long content for accessibility
+        let truncatedContent = contentDescription.prefix(100)
+        let ellipsis = contentDescription.count > 100 ? "..." : ""
+        let contentPart = contentDescription.isEmpty ? "" : ". \(truncatedContent)\(ellipsis)"
+
+        return "\(typeString)\(appString)\(contentPart). Copied at \(timeString)"
     }
 }
