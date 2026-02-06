@@ -1,37 +1,40 @@
 import Foundation
+import AppKit
 
 class ImageStore {
     static let shared = ImageStore()
 
-    private init() {}
-
-    private var imagesDirectory: URL {
-        let dir = PersistenceManager.storageDirectory.appendingPathComponent("images")
-        if !FileManager.default.fileExists(atPath: dir.path) {
-            try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        }
-        return dir
-    }
+    private let persistenceManager = PersistenceManager.shared
 
     func save(data: Data) -> String? {
-        let uuid = UUID().uuidString
-        let url = imagesDirectory.appendingPathComponent(uuid)
+        guard let dir = persistenceManager.imagesDirectoryURL else { return nil }
+        let id = UUID().uuidString
+        let url = dir.appendingPathComponent(id)
         do {
             try data.write(to: url)
-            return uuid
+            return id
         } catch {
-            print("ImageStore: Failed to save image \(uuid): \(error)")
+            print("ImageStore: Failed to save image \(error)")
             return nil
         }
     }
 
-    func load(uuid: String) -> Data? {
-        let url = imagesDirectory.appendingPathComponent(uuid)
+    func load(id: String) -> Data? {
+        guard let dir = persistenceManager.imagesDirectoryURL else { return nil }
+        let url = dir.appendingPathComponent(id)
         return try? Data(contentsOf: url)
     }
 
-    func delete(uuid: String) {
-        let url = imagesDirectory.appendingPathComponent(uuid)
+    func delete(id: String) {
+        guard let dir = persistenceManager.imagesDirectoryURL else { return }
+        let url = dir.appendingPathComponent(id)
         try? FileManager.default.removeItem(at: url)
+    }
+
+    func loadImage(id: String) -> NSImage? {
+        if let data = load(id: id) {
+            return NSImage(data: data)
+        }
+        return nil
     }
 }
