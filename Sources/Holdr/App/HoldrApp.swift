@@ -54,8 +54,8 @@ struct HoldrApp: App {
         guard let url = logoURL else { return nil }
         guard let nsImage = NSImage(contentsOf: url) else { return nil }
         
-        // Resize to standard menu bar icon size (e.g. 18x18 or 22x22 depending on padding)
-        let size = NSSize(width: 22, height: 22)
+        // Resize to standard menu bar icon size (18x18)
+        let size = NSSize(width: 18, height: 18)
         let resized = NSImage(size: size)
         
         resized.lockFocus()
