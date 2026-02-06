@@ -53,7 +53,14 @@ struct ClipCardView: View {
             Spacer()
         }
         .padding(12)
-        .background(Color(nsColor: .controlBackgroundColor))
+        .background(
+            ZStack {
+                Color(nsColor: .controlBackgroundColor)
+                if isHovering {
+                    Color.primary.opacity(0.05)
+                }
+            }
+        )
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
         .overlay(
