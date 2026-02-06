@@ -46,6 +46,7 @@ struct HoldrApp: App {
     private static let resizedLogo: NSImage? = {
         // Try module first (SPM), then main (App Bundle)
         var logoURL = Bundle.module.url(forResource: "menubar_icon", withExtension: "png")
+        // If Bundle.module fails or is not available in some contexts, try main bundle
         if logoURL == nil {
             logoURL = Bundle.main.url(forResource: "menubar_icon", withExtension: "png")
         }
