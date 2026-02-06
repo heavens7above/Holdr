@@ -17,6 +17,7 @@ struct ClipCardView: View {
                     .foregroundColor(.accentColor)
                     .font(.system(size: 18))
             }
+            .accessibilityHidden(true)
             
             VStack(alignment: .leading, spacing: 4) {
                 if case .image = item.type {
@@ -46,6 +47,7 @@ struct ClipCardView: View {
                 }
                 .font(.caption)
                 .foregroundColor(.secondary)
+                .accessibilityHidden(true)
             }
             
             Spacer()
