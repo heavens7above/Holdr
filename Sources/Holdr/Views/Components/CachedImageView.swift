@@ -1,12 +1,18 @@
 import SwiftUI
+import AppKit
 
 struct CachedImageView: View {
-    let data: Data
-    let cacheKey: String
-    let fallbackText: String
-
+    let item: HistoryItem
     @State private var image: NSImage?
-    @State private var isLoading = true
+    @State private var failedToDecode = false
+
+    init(item: HistoryItem) {
+        self.item = item
+        // Initialize with cached image to avoid flicker
+        if let cached = ImageCache.shared.image(forKey: item.id.uuidString) {
+            _image = State(initialValue: cached)
+        }
+    }
 
     var body: some View {
         Group {
@@ -14,49 +20,61 @@ struct CachedImageView: View {
                 Image(nsImage: image)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-            } else if !isLoading {
-                // Fallback to text if image loading fails
-                Text(fallbackText)
+                    .frame(maxHeight: 120)
+                    .cornerRadius(8)
+            } else if failedToDecode {
+                // Fallback to text content if image decoding fails
+                Text(item.content)
                     .lineLimit(2)
                     .font(.system(.body, design: .rounded))
                     .foregroundColor(.primary)
             } else {
-                // Loading state
+                // Loading placeholder
                 ZStack {
-                    Color.secondary.opacity(0.1)
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.secondary.opacity(0.1))
+                        .frame(height: 100)
                     ProgressView()
-                        .scaleEffect(0.5)
+                        .controlSize(.small)
                 }
-                .aspectRatio(1, contentMode: .fit)
+                .task(id: item.id) {
+                    await loadImage()
+                }
             }
-        }
-        .task(id: cacheKey) {
-            await loadImage()
         }
     }
 
     private func loadImage() async {
-        // Check cache first
-        if let cached = ImageCache.shared.image(forKey: cacheKey) {
+        // If already loaded (e.g. via init), do nothing
+        if image != nil { return }
+
+        let key = item.id.uuidString
+
+        // 1. Check Cache again (in case it was populated since init)
+        if let cached = ImageCache.shared.image(forKey: key) {
             self.image = cached
-            self.isLoading = false
             return
         }
 
-        // Decode off-main-thread
-        // We capture 'data' explicitly.
-        // Note: Creating a Task.detached ensures we don't block the main actor if this was called from one,
-        // although .task is already async. But NSImage(data:) is synchronous and CPU heavy.
-        let loadedImage = await Task.detached(priority: .userInitiated) {
-            return NSImage(data: data)
-        }.value
+        // 2. Decode off main thread
+        if case .image(let data) = item.type {
+            let decoded = await Task.detached {
+                return NSImage(data: data)
+            }.value
 
-        // Update state on Main Actor
-        if let loadedImage = loadedImage {
-            ImageCache.shared.setImage(loadedImage, forKey: cacheKey)
-            self.image = loadedImage
+            // Check cancellation or just update
+            if !Task.isCancelled {
+                await MainActor.run {
+                    if let decoded = decoded {
+                        ImageCache.shared.setImage(decoded, forKey: key)
+                        self.image = decoded
+                    } else {
+                        self.failedToDecode = true
+                    }
+                }
+            }
+        } else {
+            self.failedToDecode = true
         }
-
-        self.isLoading = false
     }
 }
