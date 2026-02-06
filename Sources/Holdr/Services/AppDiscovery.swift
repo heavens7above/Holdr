@@ -5,6 +5,7 @@ import Combine
 class AppDiscovery: ObservableObject {
     @Published var runningApps: [AppInfo] = []
     private var cancellables = Set<AnyCancellable>()
+    private let updateQueue = DispatchQueue(label: "com.holdr.appDiscovery.updateQueue", qos: .userInitiated)
     
     struct AppInfo: Identifiable, Hashable {
         let id = UUID()
@@ -40,6 +41,10 @@ class AppDiscovery: ObservableObject {
     }
     
     private func updateRunningApps() {
+        updateQueue.async { [weak self] in
+            let apps = NSWorkspace.shared.runningApplications
+                .filter { $0.activationPolicy == .regular } // Only normal apps (with Dock icon)
+                .sorted { ($0.localizedName ?? "") < ($1.localizedName ?? "") }
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             let apps = NSWorkspace.shared.runningApplications
                 .filter { $0.activationPolicy == .regular } // Only normal apps (with Dock icon)
