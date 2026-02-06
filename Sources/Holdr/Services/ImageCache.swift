@@ -2,24 +2,24 @@ import AppKit
 
 class ImageCache {
     static let shared = ImageCache()
+    private let cache = NSCache<NSString, NSImage>()
+
+    private init() {
+        cache.countLimit = 50 // Keep 50 decoded images in memory
 
     private let cache = NSCache<NSString, NSImage>()
 
     private init() {
-        cache.countLimit = 200
+        // reasonable defaults
+        cache.countLimit = 100
     }
 
-    func image(for item: HistoryItem) -> NSImage? {
-        let key = item.id.uuidString as NSString
-        if let cached = cache.object(forKey: key) {
-            return cached
-        }
+    func image(forKey key: String) -> NSImage? {
+        return cache.object(forKey: key as NSString)
+    }
 
-        if case .image(let data) = item.type, let image = NSImage(data: data) {
-            cache.setObject(image, forKey: key)
-            return image
-        }
-
-        return nil
+    func setImage(_ image: NSImage, forKey key: String) {
+    func insert(_ image: NSImage, forKey key: String) {
+        cache.setObject(image, forKey: key as NSString)
     }
 }
