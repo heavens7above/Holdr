@@ -327,22 +327,6 @@ class ClipboardMonitor: ObservableObject {
                  return
             }
 
-    private func checkImagesAndStrings(bundleID: String?, appName: String?) {
-        // 2. Check for Images (TIFF/PNG from apps)
-        // Use readObjects(forClasses: [NSImage.self]) for better coverage
-        if pasteboard.canReadObject(forClasses: [NSImage.self], options: nil),
-           let images = pasteboard.readObjects(forClasses: [NSImage.self], options: nil) as? [NSImage],
-           let firstImage = images.first,
-           let tiffData = firstImage.tiffRepresentation {
-
-             if let first = items.first, case .image(let data) = first.type, data.count == tiffData.count { return }
-
-             let newItem = HistoryItem(content: "Image Clip", type: .image(tiffData), appBundleID: bundleID, appName: appName)
-             print("Detected image copy from \(appName ?? "Unknown")")
-             DispatchQueue.main.async { self.items.insert(newItem, at: 0) }
-             return
-        }
-
         // 3. Check for Strings/URLs
         if let str = pasteboard.string(forType: .string) {
             if let first = items.first, first.content == str { return }
@@ -360,6 +344,7 @@ class ClipboardMonitor: ObservableObject {
         }
     }
     
+    }
     func copyItem(_ item: HistoryItem) {
         pasteboard.clearContents()
         var success = false
