@@ -58,6 +58,11 @@ class ClipboardMonitor: ObservableObject {
     private let pasteboard = NSPasteboard.general
     private let persistenceManager = PersistenceManager.shared
 
+    // Optimized Persistence URL
+    private var persistenceURL: URL? {
+        return persistenceManager.historyFileURL
+    }
+
     // Legacy support structure for migration
     private struct LegacyHistoryItem: Codable {
         let id: UUID
@@ -89,18 +94,10 @@ class ClipboardMonitor: ObservableObject {
     }
     
     private func saveLogo() {
-        // 1. Save logo file inside the folder (as requested previously)
-        guard let folderURL = PersistenceManager.shared.persistenceDirectory else { return }
-        let logoURL = folderURL.appendingPathComponent("logo.png")
-        
-        // Try module first (SPM), then main (App Bundle)
-        var resourceURL = Bundle.module.url(forResource: "logo", withExtension: "png")
-        if resourceURL == nil {
-             resourceURL = Bundle.main.url(forResource: "logo", withExtension: "png")
-        }
-        
-        if let bundleLogo = resourceURL,
-           let appLogo = NSImage(contentsOf: bundleLogo) {
+        DispatchQueue.global(qos: .utility).async {
+            // 1. Save logo file inside the folder (as requested previously)
+            guard let folderURL = PersistenceManager.shared.persistenceDirectory else { return }
+            let logoURL = folderURL.appendingPathComponent("logo.png")
             
             // Try module first (SPM), then main (App Bundle)
             var resourceURL = Bundle.module.url(forResource: "logo", withExtension: "png")
@@ -364,6 +361,9 @@ class ClipboardMonitor: ObservableObject {
         
         if success {
             print("Successfully wrote to clipboard")
+            // Update local changeCount to match the new pasteboard state
+            // to avoid detecting our own write as a new change.
+            // Update changeCount to ignore this self-induced change
             self.changeCount = pasteboard.changeCount
         } else {
             print("Failed to write to clipboard")
