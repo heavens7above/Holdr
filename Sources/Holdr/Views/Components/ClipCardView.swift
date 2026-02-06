@@ -54,6 +54,7 @@ struct ClipCardView: View {
             Spacer()
         }
         .padding(12)
+        .background(isHovering ? Color(nsColor: .selectedControlColor).opacity(0.1) : Color(nsColor: .controlBackgroundColor))
         .background(
             isHovering ? Color(nsColor: .selectedControlColor).opacity(0.1) : Color(nsColor: .controlBackgroundColor)
             ZStack {
@@ -80,6 +81,38 @@ struct ClipCardView: View {
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(accessibilityLabelString)
+        .accessibilityAddTraits(.isButton)
+        .accessibilityHint("Double tap to copy to clipboard")
+    }
+
+    var accessibilityLabelString: String {
+        var parts: [String] = []
+
+        // Type
+        switch item.type {
+        case .text: parts.append("Text")
+        case .link: parts.append("Link")
+        case .image: parts.append("Image")
+        }
+
+        // Source App
+        if let appName = item.appName {
+            parts.append("from \(appName)")
+        }
+
+        // Content
+        parts.append(item.content)
+
+        // Date
+        if #available(macOS 12.0, *) {
+            parts.append("at " + item.date.formatted(date: .omitted, time: .shortened))
+        } else {
+             let formatter = DateFormatter()
+             formatter.timeStyle = .short
+             parts.append("at " + formatter.string(from: item.date))
+        }
+
+        return parts.joined(separator: ", ")
         .accessibilityLabel(accessibilityLabel)
         .accessibilityHint("Copies content to clipboard")
         .accessibilityElement(children: .ignore)
