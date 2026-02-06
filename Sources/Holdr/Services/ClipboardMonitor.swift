@@ -277,3 +277,18 @@ class ClipboardMonitor: ObservableObject {
         }
     }
 }
+
+// Legacy structure for migration
+private struct LegacyHistoryItem: Codable {
+    let content: String
+    let type: LegacyItemType
+    let date: Date
+    let appBundleID: String?
+    let appName: String?
+
+    enum LegacyItemType: Codable {
+        case text
+        case link(URL)
+        case image(Data)
+    }
+}
