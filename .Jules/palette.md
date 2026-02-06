@@ -1,5 +1,3 @@
-# Palette's UX Journal
-
-## 2026-01-28 - List Items as Action Buttons
-**Learning:** In SwiftUI, using `.onTapGesture` on a `List` item overrides standard selection behavior but leaves the item feeling static. Users (especially those using VoiceOver) expect actionable items to announce themselves as buttons and visual users expect hover feedback.
-**Action:** Always add `.accessibilityAddTraits(.isButton)` and a visual hover state (like a background tint) to custom list items that perform actions.
+## 2024-10-24 - Accessibility Labels for Complex List Items
+**Learning:** When creating custom list items in SwiftUI (like clipboard history cards), grouping children with .accessibilityElement(children: .ignore) and providing a computed label is crucial for a clean VoiceOver experience. Simply relying on default behavior results in "chatty" interfaces where every sub-view is read separately.
+**Action:** Always check complex list rows and apply grouping + custom label.
