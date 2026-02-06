@@ -19,17 +19,38 @@ struct ContentView: View {
                     .ignoresSafeArea()
                 
                 if filteredItems.isEmpty {
-                    VStack(spacing: 16) {
-                        Image(systemName: "clipboard")
-                            .font(.system(size: 60))
-                            .foregroundColor(.secondary.opacity(0.5))
-                        Text("No clippings found")
-                            .font(.title2)
-                            .fontWeight(.medium)
-                            .foregroundColor(.secondary)
-                        Text("Copy text or images to see them here.")
-                            .font(.callout)
-                            .foregroundColor(.secondary.opacity(0.8))
+                    if searchText.isEmpty {
+                        VStack(spacing: 16) {
+                            Image(systemName: "clipboard")
+                                .font(.system(size: 60))
+                                .foregroundColor(.secondary.opacity(0.5))
+                                .accessibilityHidden(true)
+                            Text("No clippings found")
+                                .font(.title2)
+                                .fontWeight(.medium)
+                                .foregroundColor(.secondary)
+                            Text("Copy text or images to see them here.")
+                                .font(.callout)
+                                .foregroundColor(.secondary.opacity(0.8))
+                        }
+                        .accessibilityElement(children: .combine)
+                    } else {
+                        VStack(spacing: 16) {
+                            Image(systemName: "magnifyingglass")
+                                .font(.system(size: 60))
+                                .foregroundColor(.secondary.opacity(0.5))
+                                .accessibilityHidden(true)
+                            Text("No matches found")
+                                .font(.title2)
+                                .fontWeight(.medium)
+                                .foregroundColor(.secondary)
+                            Text("No clips match \"\(searchText)\"")
+                                .font(.callout)
+                                .foregroundColor(.secondary.opacity(0.8))
+                                .multilineTextAlignment(.center)
+                        }
+                        .padding()
+                        .accessibilityElement(children: .combine)
                     }
                 } else {
                     List {

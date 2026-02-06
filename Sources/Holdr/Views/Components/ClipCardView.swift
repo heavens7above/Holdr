@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 
 struct ClipCardView: View {
     let item: HistoryItem
@@ -10,12 +11,13 @@ struct ClipCardView: View {
         formatter.dateStyle = .none
         return formatter
     }()
+
     @State private var decodedImage: NSImage?
     @State private var hasFailedDecoding = false
     
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
-            // Icon based on type
+            // Icon
             ZStack {
                 RoundedRectangle(cornerRadius: 8)
                     .fill(Color.accentColor.opacity(0.1))
@@ -27,6 +29,7 @@ struct ClipCardView: View {
             }
             .accessibilityHidden(true)
             
+            // Content
             VStack(alignment: .leading, spacing: 4) {
                 if case .image = item.type {
                     if let nsImage = decodedImage {
@@ -38,13 +41,13 @@ struct ClipCardView: View {
                     } else if hasFailedDecoding {
                         textContent
                     } else {
-                        // Loading state placeholder - keeps layout stable during load
-                        Color.clear.frame(height: 120)
+                        Color.clear.frame(height: 120) // Placeholder
                     }
                 } else {
                     textContent
                 }
                 
+                // Metadata
                 HStack {
                     Text(item.date, style: .time)
                     if case .link = item.type {
@@ -62,113 +65,46 @@ struct ClipCardView: View {
         }
         .padding(12)
         .background(
-            isHovering ? Color(nsColor: .selectedControlColor).opacity(0.1) : Color(nsColor: .controlBackgroundColor)
-            isHovering
-            ? Color(nsColor: .selectedControlColor).opacity(0.1)
-            : Color(nsColor: .controlBackgroundColor)
-        .background(isHovering ? Color(nsColor: .selectedControlColor).opacity(0.1) : Color(nsColor: .controlBackgroundColor))
-        .background(
-            isHovering ?
-            Color(nsColor: .selectedControlColor).opacity(0.1) :
-            Color(nsColor: .controlBackgroundColor)
-        .background(isHovering ? Color(nsColor: .selectedControlColor).opacity(0.1) : Color(nsColor: .controlBackgroundColor))
-        .background(
-            isHovering ? Color(nsColor: .selectedControlColor).opacity(0.1) : Color(nsColor: .controlBackgroundColor)
             ZStack {
                 Color(nsColor: .controlBackgroundColor)
                 if isHovering {
-                    Color.primary.opacity(0.05)
+                    Color(nsColor: .selectedControlColor).opacity(0.1)
                 }
             }
         )
         .cornerRadius(12)
-        .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
         .overlay(
             RoundedRectangle(cornerRadius: 12)
                 .stroke(isHovering ? Color.accentColor.opacity(0.5) : Color(nsColor: .separatorColor), lineWidth: isHovering ? 2 : 0.5)
-                .stroke(
-                    isHovering ? Color.accentColor.opacity(0.5) : Color(nsColor: .separatorColor),
-                    lineWidth: isHovering ? 2 : 0.5
-                )
         )
-        .onHover { isHovering = $0 }
-                .stroke(isHovering ? Color.accentColor.opacity(0.5) : Color(nsColor: .separatorColor), lineWidth: 0.5)
-        )
-        .onHover { isHovering = $0 }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(accessibilityLabelString)
-        .accessibilityHint("Click to copy to clipboard")
-        .accessibilityAddTraits(.isButton)
-    }
-
-    var accessibilityLabelString: String {
-        let typeString: String
-        switch item.type {
-        case .text: typeString = "Text"
-        case .link: typeString = "Link"
-        case .image: typeString = "Image"
-        }
-
-        return "\(typeString) from \(item.appName ?? "Unknown App"). \(item.content)"
-                .stroke(
-                    isHovering ? Color.accentColor.opacity(0.5) : Color(nsColor: .separatorColor),
-                    lineWidth: 0.5
-                )
-        )
+        .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
         .scaleEffect(isHovering ? 1.01 : 1.0)
         .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isHovering)
         .onHover { isHovering = $0 }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(accessibilityLabel)
-                .stroke(isHovering ? Color.accentColor.opacity(0.5) : Color(nsColor: .separatorColor), lineWidth: 0.5)
-        )
-        .onHover { hovering in
-            withAnimation(.easeInOut(duration: 0.2)) {
-                isHovering = hovering
-            }
-        }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(accessibilityLabelString)
-        .accessibilityAddTraits(.isButton)
-        .accessibilityHint("Double tap to copy to clipboard")
-    }
-
-    var accessibilityLabelString: String {
-        var parts: [String] = []
-
-        // Type
-        switch item.type {
-        case .text: parts.append("Text")
-        case .link: parts.append("Link")
-        case .image: parts.append("Image")
-        }
-
-        // Source App
-        if let appName = item.appName {
-            parts.append("from \(appName)")
-        }
-
-        // Content
-        parts.append(item.content)
-
-        // Date
-        if #available(macOS 12.0, *) {
-            parts.append("at " + item.date.formatted(date: .omitted, time: .shortened))
-        } else {
-             let formatter = DateFormatter()
-             formatter.timeStyle = .short
-             parts.append("at " + formatter.string(from: item.date))
-        }
-
-        return parts.joined(separator: ", ")
-        .accessibilityLabel(accessibilityLabel)
-        .accessibilityHint("Copies content to clipboard")
+        // Accessibility
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(accessibilityLabelText)
-        .accessibilityHint("Double tap to copy to clipboard")
+        .accessibilityHint("Double click to copy to clipboard")
         .accessibilityAddTraits(.isButton)
+        // Image loading
+        .task {
+            if case .image(let id) = item.type {
+                if let image = ImageStore.shared.loadImage(id: id) {
+                    self.decodedImage = image
+                } else {
+                    self.hasFailedDecoding = true
+                }
+            }
+        }
     }
-    
+
+    var textContent: some View {
+        Text(item.content)
+            .font(.body)
+            .lineLimit(3)
+            .foregroundColor(.primary)
+    }
+
     var iconName: String {
         switch item.type {
         case .text: return "text.quote"
@@ -177,70 +113,23 @@ struct ClipCardView: View {
         }
     }
 
-    var accessibilityLabel: String {
-    var accessibilityLabelString: String {
-        let typeStr: String
-        switch item.type {
-        case .text: typeStr = "Text"
-        case .link: typeStr = "Link"
-        case .image: typeStr = "Image"
-        }
-
-        var label = "\(typeStr) clip"
-        if let appName = item.appName {
-            label += " from \(appName)"
-        }
-
-        if case .text = item.type {
-            label += ": \(item.content)"
-        } else if case .link = item.type {
-            label += ": \(item.content)"
-        }
-
-        // Use static formatter
-        label += ". Copied at \(Self.dateFormatter.string(from: item.date))"
-
-        return label
-        return "\(typeStr) from \(item.appName ?? "Unknown application"), \(item.content)"
-    var accessibilityLabel: String {
-        let typeDesc: String
-        switch item.type {
-        case .text: typeDesc = "Text"
-        case .link: typeDesc = "Link"
-        case .image: typeDesc = "Image"
-        }
-
-        var label = typeDesc
-        if let app = item.appName {
-            label += ", from \(app)"
-        }
-
-        label += ": \(item.content)"
-        return label
     private var accessibilityLabelText: String {
         let typeString: String
-        let contentDescription: String
-
         switch item.type {
-        case .text:
-            typeString = "Text"
-            contentDescription = item.content
-        case .link:
-            typeString = "Link"
-            contentDescription = item.content
-        case .image:
-            typeString = "Image"
-            contentDescription = ""
+        case .text: typeString = "Text"
+        case .link: typeString = "Link"
+        case .image: typeString = "Image"
         }
 
         let appString = item.appName.map { ", from \($0)" } ?? ""
-        let timeString = item.date.formatted(date: .omitted, time: .shortened)
 
-        // Truncate long content for accessibility
-        let truncatedContent = contentDescription.prefix(100)
-        let ellipsis = contentDescription.count > 100 ? "..." : ""
-        let contentPart = contentDescription.isEmpty ? "" : ". \(truncatedContent)\(ellipsis)"
+        let contentDescription: String
+        if case .image = item.type {
+            contentDescription = ""
+        } else {
+            contentDescription = ": \(item.content)"
+        }
 
-        return "\(typeString)\(appString)\(contentPart). Copied at \(timeString)"
+        return "\(typeString)\(appString)\(contentDescription). Copied at \(Self.dateFormatter.string(from: item.date))"
     }
 }
