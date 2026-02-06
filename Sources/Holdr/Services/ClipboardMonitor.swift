@@ -175,7 +175,47 @@ class ClipboardMonitor: ObservableObject {
                 }
 
             } catch {
-                print("Failed to load history: \(error)")
+                print("Failed to load new format, trying legacy: \(error)")
+                // 2. Try legacy format
+                do {
+                    let data = try Data(contentsOf: url)
+                    let legacyItems = try JSONDecoder().decode([LegacyHistoryItem].self, from: data)
+                    print("Found \(legacyItems.count) legacy items. Migrating...")
+
+                    var newItems: [HistoryItem] = []
+                    for item in legacyItems {
+                        let newType: HistoryItem.ItemType
+                        switch item.type {
+                        case .text:
+                            newType = .text
+                        case .link(let url):
+                            newType = .link(url)
+                        case .image(let data):
+                            guard let uuid = ImageStore.shared.save(data: data) else { continue }
+                            newType = .image(uuid)
+                        }
+
+                        let newItem = HistoryItem(
+                            content: item.content,
+                            type: newType,
+                            date: item.date,
+                            appBundleID: item.appBundleID,
+                            appName: item.appName
+                        )
+                        var finalItem = newItem
+                        finalItem.id = item.id
+                        newItems.append(finalItem)
+                    }
+
+                    // Update UI and Save converted
+                    DispatchQueue.main.async {
+                        self.items = newItems
+                        print("Migrated \(newItems.count) items to new format")
+                        self.save()
+                    }
+                } catch {
+                    print("Failed to load history (legacy): \(error)")
+                }
             }
         }
     }
