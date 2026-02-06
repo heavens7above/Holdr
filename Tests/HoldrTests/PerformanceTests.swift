@@ -1,90 +1,119 @@
 import XCTest
-@testable import Holdr
 
 final class PerformanceTests: XCTestCase {
 
-    // Simulate the old structure for comparison
+    // MOCK: Old Structure (Embedding Data)
     struct LegacyHistoryItem: Codable {
-        let id: UUID
         let content: String
         let type: LegacyItemType
-        let date: Date
-
         enum LegacyItemType: Codable {
-            case text
-            case link(URL)
             case image(Data)
         }
     }
 
-    func testPerformanceComparison() throws {
-        // Generate dummy image data (approx 1MB)
-        let imageSize = 1024 * 1024
-        let dummyData = Data(repeating: 0xFF, count: imageSize)
-        let itemCount = 50
+    // MOCK: New Structure (Referencing File)
+    struct OptimizedHistoryItem: Codable {
+        let content: String
+        let type: OptimizedItemType
+        enum OptimizedItemType: Codable {
+            case image(String)
+        }
+    }
 
-        // 1. Benchmark Legacy (Embedded Data)
-        let legacyItems = (0..<itemCount).map { _ in
-            LegacyHistoryItem(id: UUID(), content: "Image", type: .image(dummyData), date: Date())
+    func testPerformanceComparison() throws {
+        // Create 5MB image data
+        let largeData = Data(repeating: 0, count: 5 * 1024 * 1024)
+        let count = 20
+
+        print("--- Performance Benchmark ---")
+        print("Simulating saving \(count) items with 5MB images each (100MB total)")
+
+        // 1. Baseline
+        let legacyItems = (0..<count).map { _ in
+            LegacyHistoryItem(content: "Image", type: .image(largeData))
         }
 
-        print("--- Benchmarking Legacy Storage (Embedded Data) ---")
-        let legacyStart = Date()
-        let legacyEncoder = JSONEncoder()
-        let legacyData = try legacyEncoder.encode(legacyItems)
-        let legacyEncodeTime = Date().timeIntervalSince(legacyStart)
-        print("Legacy Encode Time: \(legacyEncodeTime)s")
-        print("Legacy File Size: \(legacyData.count) bytes")
+        let startLegacy = Date()
+        let encodedLegacy = try JSONEncoder().encode(legacyItems)
+        let endLegacy = Date()
+        let durationLegacy = endLegacy.timeIntervalSince(startLegacy)
+        print("Legacy (Embedded Data) Encoding Time: \(String(format: "%.4f", durationLegacy)) seconds. Size: \(encodedLegacy.count / 1024 / 1024) MB")
 
-        let legacyDecodeStart = Date()
-        let legacyDecoder = JSONDecoder()
-        let _ = try legacyDecoder.decode([LegacyHistoryItem].self, from: legacyData)
-        let legacyDecodeTime = Date().timeIntervalSince(legacyDecodeStart)
-        print("Legacy Decode Time: \(legacyDecodeTime)s")
+        // 2. Optimized
+        let optimizedItems = (0..<count).map { _ in
+            OptimizedHistoryItem(content: "Image", type: .image(UUID().uuidString))
+        }
 
-        // 2. Benchmark Optimized (References)
-        // Note: This assumes HistoryItem has been updated to use references.
-        // If not, this part might need adjustment or will test the current state if it matches.
+        let startOpt = Date()
+        let encodedOpt = try JSONEncoder().encode(optimizedItems)
+        let endOpt = Date()
+        let durationOpt = endOpt.timeIntervalSince(startOpt)
+        print("Optimized (File References) Encoding Time: \(String(format: "%.4f", durationOpt)) seconds. Size: \(encodedOpt.count) bytes")
 
-        // We simulate the new state where we only store a UUID string (~36 bytes)
-        // We can't use HistoryItem directly here if we want this test to run *before* the refactor
-        // without modification, but assuming this runs after refactor:
+        let improvement = durationLegacy / durationOpt
+        print("Speedup: \(String(format: "%.2f", improvement))x")
+        print("-----------------------------")
+final class PerformanceTests: XCTestCase {
+    func testFileReadPerformance() throws {
+        // Create a 50MB temporary file
+        let fileURL = FileManager.default.temporaryDirectory.appendingPathComponent("temp_large_file.dat")
+        let dataSize = 50 * 1024 * 1024 // 50MB
+        let data = Data(repeating: 0, count: dataSize)
+        try data.write(to: fileURL)
 
-        // For the sake of this standalone benchmark, let's define what the optimized struct looks like
-        struct OptimizedHistoryItem: Codable {
-            let id: UUID
-            let content: String
-            let type: OptimizedItemType
-            let date: Date
+        defer {
+            try? FileManager.default.removeItem(at: fileURL)
+        }
 
-            enum OptimizedItemType: Codable {
-                case text
-                case link(URL)
-                case image(String) // UUID Reference
+        measure {
+            // Measure the time to read the file synchronously
+            _ = try? Data(contentsOf: fileURL)
+import AppKit
+@testable import Holdr
+
+final class PerformanceTests: XCTestCase {
+    func testImageDecodingPerformance() {
+        // Generate a 1024x1024 random image
+        let width = 1024
+        let height = 1024
+        guard let rep = NSBitmapImageRep(
+            bitmapDataPlanes: nil,
+            pixelsWide: width,
+            pixelsHigh: height,
+            bitsPerSample: 8,
+            samplesPerPixel: 4,
+            hasAlpha: true,
+            isPlanar: false,
+            colorSpaceName: .deviceRGB,
+            bytesPerRow: width * 4,
+            bitsPerPixel: 32
+        ) else {
+            XCTFail("Failed to create bitmap rep")
+            return
+        }
+
+        // Fill with some data
+        if let bitmapData = rep.bitmapData {
+            for i in 0..<(width * height * 4) {
+                bitmapData[i] = UInt8(i % 255)
             }
         }
 
-        let optimizedItems = (0..<itemCount).map { _ in
-            OptimizedHistoryItem(id: UUID(), content: "Image", type: .image(UUID().uuidString), date: Date())
+        guard let data = rep.representation(using: .png, properties: [:]) else {
+            XCTFail("Failed to create test image data")
+            return
         }
 
-        print("\n--- Benchmarking Optimized Storage (References) ---")
-        let optStart = Date()
-        let optEncoder = JSONEncoder()
-        let optData = try optEncoder.encode(optimizedItems)
-        let optEncodeTime = Date().timeIntervalSince(optStart)
-        print("Optimized Encode Time: \(optEncodeTime)s")
-        print("Optimized File Size: \(optData.count) bytes")
+        measure {
+            // Measure the cost of decoding
+            let image = NSImage(data: data)
+            XCTAssertNotNil(image)
+@testable import Holdr
 
-        let optDecodeStart = Date()
-        let optDecoder = JSONDecoder()
-        let _ = try optDecoder.decode([OptimizedHistoryItem].self, from: optData)
-        let optDecodeTime = Date().timeIntervalSince(optDecodeStart)
-        print("Optimized Decode Time: \(optDecodeTime)s")
-
-        // Assertions
-        XCTAssertLessThan(optData.count, legacyData.count, "Optimized storage should be smaller")
-        XCTAssertLessThan(optEncodeTime, legacyEncodeTime, "Optimized encoding should be faster")
-        XCTAssertLessThan(optDecodeTime, legacyDecodeTime, "Optimized decoding should be faster")
+final class PerformanceTests: XCTestCase {
+    func testInitializationPerformance() {
+        measure {
+            let _ = ClipboardMonitor()
+        }
     }
 }

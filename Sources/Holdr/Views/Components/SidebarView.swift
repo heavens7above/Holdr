@@ -28,9 +28,9 @@ struct SidebarView: View {
             
             if !otherApps.isEmpty {
                 Section("Other History") {
-                    ForEach(otherApps, id: \.self) { bundleID in
-                        Label(appName(for: bundleID), systemImage: "clock")
-                            .tag(HistoryItem.Category.app(bundleID))
+                    ForEach(otherApps) { app in
+                        Label(app.name, systemImage: "clock")
+                            .tag(HistoryItem.Category.app(app.bundleID))
                     }
                 }
             }
@@ -45,13 +45,32 @@ struct SidebarView: View {
     }
     
     // Apps that are in history but NOT currently running
-    var otherApps: [String] {
-        let historyBundleIDs = Set(clipboardMonitor.items.compactMap { $0.appBundleID })
-        let runningBundleIDs = Set(appDiscovery.runningApps.map { $0.bundleID })
-        return Array(historyBundleIDs.subtracting(runningBundleIDs)).sorted()
+    private struct HistoryAppDisplay: Hashable, Identifiable {
+        var id: String { bundleID }
+        let bundleID: String
+        let name: String
     }
-    
-    func appName(for bundleID: String) -> String {
-        return clipboardMonitor.items.first(where: { $0.appBundleID == bundleID })?.appName ?? "Unknown"
+
+    private var otherApps: [HistoryAppDisplay] {
+        let runningBundleIDs = Set(appDiscovery.runningApps.map { $0.bundleID })
+
+        // Single pass to collect bundle IDs and names
+        var apps: [String: String] = [:]
+        for item in clipboardMonitor.items {
+            if let bid = item.appBundleID {
+                // Keep the first name encountered to match original behavior
+                if apps[bid] == nil {
+                    apps[bid] = item.appName ?? "Unknown"
+                }
+            }
+        }
+
+        let historyBundleIDs = Set(apps.keys)
+        let uniqueBundleIDs = historyBundleIDs.subtracting(runningBundleIDs)
+
+        return uniqueBundleIDs.sorted().compactMap { bundleID in
+            guard let name = apps[bundleID] else { return nil }
+            return HistoryAppDisplay(bundleID: bundleID, name: name)
+        }
     }
 }

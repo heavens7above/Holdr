@@ -1,35 +1,40 @@
 import Foundation
+import AppKit
 
 class ImageStore {
     static let shared = ImageStore()
 
-    private init() {}
+    private let persistenceManager = PersistenceManager.shared
 
-    func saveImage(data: Data, id: UUID) throws -> String {
-        guard let directory = PersistenceManager.shared.imagesDirectory else {
-            throw ImageStoreError.directoryNotFound
+    func save(data: Data) -> String? {
+        guard let dir = persistenceManager.imagesDirectoryURL else { return nil }
+        let id = UUID().uuidString
+        let url = dir.appendingPathComponent(id)
+        do {
+            try data.write(to: url)
+            return id
+        } catch {
+            print("ImageStore: Failed to save image \(error)")
+            return nil
         }
-
-        let filename = id.uuidString
-        let fileURL = directory.appendingPathComponent(filename)
-
-        try data.write(to: fileURL, options: .atomic)
-        return filename
     }
 
-    func loadImage(filename: String) -> Data? {
-        guard let directory = PersistenceManager.shared.imagesDirectory else { return nil }
-        let fileURL = directory.appendingPathComponent(filename)
-        return try? Data(contentsOf: fileURL)
+    func load(id: String) -> Data? {
+        guard let dir = persistenceManager.imagesDirectoryURL else { return nil }
+        let url = dir.appendingPathComponent(id)
+        return try? Data(contentsOf: url)
     }
 
-    func deleteImage(filename: String) {
-        guard let directory = PersistenceManager.shared.imagesDirectory else { return }
-        let fileURL = directory.appendingPathComponent(filename)
-        try? FileManager.default.removeItem(at: fileURL)
+    func delete(id: String) {
+        guard let dir = persistenceManager.imagesDirectoryURL else { return }
+        let url = dir.appendingPathComponent(id)
+        try? FileManager.default.removeItem(at: url)
     }
 
-    enum ImageStoreError: Error {
-        case directoryNotFound
+    func loadImage(id: String) -> NSImage? {
+        if let data = load(id: id) {
+            return NSImage(data: data)
+        }
+        return nil
     }
 }
