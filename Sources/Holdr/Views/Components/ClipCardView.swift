@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ClipCardView: View {
     let item: HistoryItem
+    @State private var isHovering = false
     @State private var decodedImage: NSImage?
     @State private var hasFailedDecoding = false
     
@@ -54,6 +55,7 @@ struct ClipCardView: View {
         }
         .padding(12)
         .background(
+            isHovering ? Color(nsColor: .selectedControlColor).opacity(0.1) : Color(nsColor: .controlBackgroundColor)
             ZStack {
                 Color(nsColor: .controlBackgroundColor)
                 if isHovering {
@@ -65,8 +67,16 @@ struct ClipCardView: View {
         .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .stroke(Color(nsColor: .separatorColor), lineWidth: 0.5)
+                .stroke(isHovering ? Color.accentColor.opacity(0.5) : Color(nsColor: .separatorColor), lineWidth: 0.5)
         )
+        .onHover { hovering in
+            withAnimation(.easeInOut(duration: 0.2)) {
+                isHovering = hovering
+            }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(accessibilityLabel)
+        .accessibilityHint("Copies content to clipboard")
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(accessibilityLabelText)
         .accessibilityHint("Double tap to copy to clipboard")
@@ -81,6 +91,21 @@ struct ClipCardView: View {
         }
     }
 
+    var accessibilityLabel: String {
+        let typeDesc: String
+        switch item.type {
+        case .text: typeDesc = "Text"
+        case .link: typeDesc = "Link"
+        case .image: typeDesc = "Image"
+        }
+
+        var label = typeDesc
+        if let app = item.appName {
+            label += ", from \(app)"
+        }
+
+        label += ": \(item.content)"
+        return label
     private var accessibilityLabelText: String {
         let typeString: String
         let contentDescription: String
