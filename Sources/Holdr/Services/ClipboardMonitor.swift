@@ -376,6 +376,8 @@ class ClipboardMonitor: ObservableObject {
         
         if success {
             print("Successfully wrote to clipboard")
+            // Update local changeCount to match the new pasteboard state
+            // to avoid detecting our own write as a new change.
             // Update changeCount to ignore this self-induced change
             self.changeCount = pasteboard.changeCount
         } else {
