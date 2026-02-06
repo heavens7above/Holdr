@@ -29,7 +29,7 @@ class AppDiscovery: ObservableObject {
         // Initial fetch
         updateRunningApps()
         
-        // Also listen for app launch/terminate notifications
+        // Listen for app launch/terminate notifications
         NSWorkspace.shared.notificationCenter.publisher(for: NSWorkspace.didLaunchApplicationNotification)
             .sink { [weak self] _ in self?.updateRunningApps() }
             .store(in: &cancellables)
