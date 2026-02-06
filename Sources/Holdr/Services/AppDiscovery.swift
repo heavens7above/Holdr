@@ -7,7 +7,7 @@ class AppDiscovery: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     
     struct AppInfo: Identifiable, Hashable {
-        let id = UUID()
+        var id: String { bundleID }
         let bundleID: String
         let name: String
         let icon: NSImage
@@ -29,12 +29,11 @@ class AppDiscovery: ObservableObject {
         // Initial fetch
         updateRunningApps()
         
-        // Listen for app launch/terminate notifications
-        NSWorkspace.shared.notificationCenter.publisher(for: NSWorkspace.didLaunchApplicationNotification)
-            .sink { [weak self] _ in self?.updateRunningApps() }
-            .store(in: &cancellables)
-            
-        NSWorkspace.shared.notificationCenter.publisher(for: NSWorkspace.didTerminateApplicationNotification)
+        // Listen for app launch/terminate notifications with debounce to avoid excessive updates
+        let center = NSWorkspace.shared.notificationCenter
+        center.publisher(for: NSWorkspace.didLaunchApplicationNotification)
+            .merge(with: center.publisher(for: NSWorkspace.didTerminateApplicationNotification))
+            .debounce(for: .seconds(0.3), scheduler: DispatchQueue.main)
             .sink { [weak self] _ in self?.updateRunningApps() }
             .store(in: &cancellables)
     }
