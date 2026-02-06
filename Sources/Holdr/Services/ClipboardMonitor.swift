@@ -19,17 +19,31 @@ class ClipboardMonitor: ObservableObject {
             updateCache()
             print("ClipboardMonitor: items updated, count: \(items.count)")
 
+            // Optimization: Single pass for multiple derived data needs
+            var currentImageIDs = Set<String>()
+            var newAppNames: [String: String] = [:]
+
+            for item in items {
+                // 1. Collect Image IDs
+                if case .image(let id) = item.type {
+                    currentImageIDs.insert(id)
+                }
+
+                // 2. Collect App Names (First wins logic)
+                if let bid = item.appBundleID, newAppNames[bid] == nil {
+                    newAppNames[bid] = item.appName ?? "Unknown"
+                }
+            }
+
+            self.appNames = newAppNames
+
             // Detect and cleanup removed images
             let oldImages = Set(oldValue.compactMap { item -> String? in
                 if case .image(let id) = item.type { return id }
                 return nil
             })
-            let newImages = Set(items.compactMap { item -> String? in
-                if case .image(let id) = item.type { return id }
-                return nil
-            })
 
-            let removedImages = oldImages.subtracting(newImages)
+            let removedImages = oldImages.subtracting(currentImageIDs)
             for id in removedImages {
                 ImageStore.shared.delete(id: id)
             }
@@ -37,6 +51,9 @@ class ClipboardMonitor: ObservableObject {
             save()
         }
     }
+
+    // Cache for O(1) app name lookup
+    public private(set) var appNames: [String: String] = [:]
     private var changeCount = 0
     private let pasteboard = NSPasteboard.general
     private let persistenceManager = PersistenceManager.shared
@@ -100,9 +117,8 @@ class ClipboardMonitor: ObservableObject {
             // Draw base folder
             folderIcon.draw(in: NSRect(origin: .zero, size: folderIcon.size))
             
-            // Draw logo centered and scaled (e.g. 50% size)
-            // Adjust scale as needed to match standard macOS look
-            let scale: CGFloat = 0.5
+            // Draw logo centered and scaled
+            let scale: CGFloat = 0.6
             let logoSize = NSSize(width: folderIcon.size.width * scale, height: folderIcon.size.height * scale)
             let logoOrigin = NSPoint(
                 x: (folderIcon.size.width - logoSize.width) / 2,
@@ -266,12 +282,17 @@ class ClipboardMonitor: ObservableObject {
             var handledAsFile = false
             if let urls = pasteboard.readObjects(forClasses: [NSURL.self], options: nil) as? [URL], let firstURL = urls.first {
                 // Is it an image file?
-                if let typeID = try? firstURL.resourceValues(forKeys: [.typeIdentifierKey]).typeIdentifier,
-                   let utType = UTType(typeID),
-                   utType.conforms(to: .image) {
+                // OPTIMIZATION: Check extension first to avoid main thread I/O
+                let ext = firstURL.pathExtension
+                if !ext.isEmpty, let utType = UTType(filenameExtension: ext), utType.conforms(to: .image) {
                     
                     // Load in background to avoid blocking main thread
                     DispatchQueue.global(qos: .userInitiated).async {
+                        // Double check with resource values (robust check off main thread)
+                        guard let typeID = try? firstURL.resourceValues(forKeys: [.typeIdentifierKey]).typeIdentifier,
+                              let fileType = UTType(typeID),
+                              fileType.conforms(to: .image) else { return }
+
                         if let data = try? Data(contentsOf: firstURL) {
                             DispatchQueue.main.async {
                                 // Check duplicate
@@ -363,6 +384,11 @@ class ClipboardMonitor: ObservableObject {
             print("Failed to write to clipboard")
         }
     }
+    func deleteItems(_ itemsToDelete: [HistoryItem]) {
+        let idsToDelete = Set(itemsToDelete.map { $0.id })
+        items.removeAll { idsToDelete.contains($0.id) }
+    }
+
 }
 
 // Legacy structure for migration

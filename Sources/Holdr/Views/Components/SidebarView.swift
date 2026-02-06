@@ -59,6 +59,13 @@ struct SidebarView: View {
 
         return uniqueBundleIDs.sorted().compactMap { bundleID in
             guard let name = historyApps[bundleID] else { return nil }
+        let cachedApps = clipboardMonitor.appNames
+
+        let historyBundleIDs = Set(cachedApps.keys)
+        let uniqueBundleIDs = historyBundleIDs.subtracting(runningBundleIDs)
+
+        return uniqueBundleIDs.sorted().compactMap { bundleID in
+            guard let name = cachedApps[bundleID] else { return nil }
             return HistoryAppDisplay(bundleID: bundleID, name: name)
         }
     }
