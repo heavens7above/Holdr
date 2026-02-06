@@ -6,6 +6,22 @@ class ClipboardMonitor: ObservableObject {
     @Published var items: [HistoryItem] = [] {
         didSet {
             print("ClipboardMonitor: items updated, count: \(items.count)")
+
+            // Detect and cleanup removed images
+            let oldImages = Set(oldValue.compactMap { item -> String? in
+                if case .image(let id) = item.type { return id }
+                return nil
+            })
+            let newImages = Set(items.compactMap { item -> String? in
+                if case .image(let id) = item.type { return id }
+                return nil
+            })
+
+            let removedImages = oldImages.subtracting(newImages)
+            for id in removedImages {
+                ImageStore.shared.delete(id: id)
+            }
+
             save()
         }
     }
