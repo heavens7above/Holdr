@@ -25,3 +25,7 @@
 ## 2024-10-25 - Manual Hover States in SwiftUI Lists
 **Learning:** Custom SwiftUI views inside a `List` with `.plain` style on macOS do not receive automatic hover effects. Adding a manual `@State` for hovering and modifying the background/border is essential for desktop-class interactivity.
 **Action:** Always add `.onHover` states to interactive custom list rows on macOS.
+
+## 2024-10-25 - Smart Date Formatting
+**Learning:** Absolute timestamps (e.g., "12:00 PM") without date context (e.g., "Yesterday") in history lists confuse users and screen readers about when an action occurred.
+**Action:** Implement a smart date formatter that adapts based on recency (Time -> Yesterday -> Short Date) and provides a verbose accessibility label.
