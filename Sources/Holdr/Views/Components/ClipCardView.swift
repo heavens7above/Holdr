@@ -78,7 +78,6 @@ struct ClipCardView: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(accessibilityLabelText)
         .accessibilityHint("Double click to copy to clipboard")
-        .accessibilityAddTraits(.isButton)
         // Image loading
         .task {
             if case .image(let id) = item.type {
@@ -96,6 +95,7 @@ struct ClipCardView: View {
             .font(.body)
             .lineLimit(3)
             .foregroundColor(.primary)
+            .help(item.content)
     }
 
     var iconName: String {

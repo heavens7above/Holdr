@@ -55,33 +55,32 @@ struct ContentView: View {
                 } else {
                     List {
                         ForEach(filteredItems) { item in
-                            ClipCardView(item: item)
-                                .listRowSeparator(.hidden)
-                                .listRowBackground(Color.clear)
-                                .contentShape(Rectangle()) // Improves tap area
-                                .onTapGesture {
-                                    copyToClipboard(item)
+                            Button(action: { copyToClipboard(item) }) {
+                                ClipCardView(item: item)
+                            }
+                            .buttonStyle(.plain)
+                            .listRowSeparator(.hidden)
+                            .listRowBackground(Color.clear)
+                            .contextMenu {
+                                Button(action: { copyToClipboard(item) }) {
+                                    Label("Copy", systemImage: "doc.on.doc")
                                 }
-                                .contextMenu {
-                                    Button(action: { copyToClipboard(item) }) {
-                                        Label("Copy", systemImage: "doc.on.doc")
-                                    }
-                                    Button(action: { deleteItem(item) }) {
-                                        Label("Delete", systemImage: "trash")
-                                    }
+                                Button(action: { deleteItem(item) }) {
+                                    Label("Delete", systemImage: "trash")
                                 }
-                                .onDrag {
-                                    switch item.type {
-                                    case .text, .link:
-                                        return NSItemProvider(object: item.content as NSString)
-                                    case .image(let id):
-                                        if let data = ImageStore.shared.load(id: id) {
-                                            return NSItemProvider(item: data as NSData, typeIdentifier: "public.tiff")
-                                        } else {
-                                            return NSItemProvider()
-                                        }
+                            }
+                            .onDrag {
+                                switch item.type {
+                                case .text, .link:
+                                    return NSItemProvider(object: item.content as NSString)
+                                case .image(let id):
+                                    if let data = ImageStore.shared.load(id: id) {
+                                        return NSItemProvider(item: data as NSData, typeIdentifier: "public.tiff")
+                                    } else {
+                                        return NSItemProvider()
                                     }
                                 }
+                            }
                         }
                         .onDelete(perform: deleteItems)
                     }
