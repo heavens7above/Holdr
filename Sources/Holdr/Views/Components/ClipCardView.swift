@@ -5,13 +5,6 @@ struct ClipCardView: View {
     let item: HistoryItem
     @State private var isHovering = false
 
-    private static let dateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.timeStyle = .short
-        formatter.dateStyle = .none
-        return formatter
-    }()
-
     @State private var decodedImage: NSImage?
     @State private var hasFailedDecoding = false
     
@@ -49,7 +42,7 @@ struct ClipCardView: View {
                 
                 // Metadata
                 HStack {
-                    Text(item.date, style: .time)
+                    Text(item.date.smartDateString())
                     if case .link = item.type {
                         Text("• Link")
                     } else if case .image = item.type {
@@ -130,6 +123,6 @@ struct ClipCardView: View {
             contentDescription = ": \(item.content)"
         }
 
-        return "\(typeString)\(appString)\(contentDescription). Copied at \(Self.dateFormatter.string(from: item.date))"
+        return "\(typeString)\(appString)\(contentDescription). Copied \(item.date.accessibilityDateDescription())"
     }
 }
