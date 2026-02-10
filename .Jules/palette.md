@@ -29,3 +29,7 @@
 ## 2024-10-25 - Smart Date Formatting
 **Learning:** Absolute timestamps (e.g., "12:00 PM") without date context (e.g., "Yesterday") in history lists confuse users and screen readers about when an action occurred.
 **Action:** Implement a smart date formatter that adapts based on recency (Time -> Yesterday -> Short Date) and provides a verbose accessibility label.
+
+## 2026-02-10 - Clear Search Keyboard Shortcut
+**Learning:** Adding `.keyboardShortcut(.escape, modifiers: [])` to a "Clear Search" button in an empty state significantly improves keyboard navigation, allowing users to quickly reset their context without mouse interaction.
+**Action:** Implement keyboard shortcuts for primary recovery actions in empty or search states.
