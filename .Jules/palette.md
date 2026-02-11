@@ -29,3 +29,7 @@
 ## 2024-10-25 - Smart Date Formatting
 **Learning:** Absolute timestamps (e.g., "12:00 PM") without date context (e.g., "Yesterday") in history lists confuse users and screen readers about when an action occurred.
 **Action:** Implement a smart date formatter that adapts based on recency (Time -> Yesterday -> Short Date) and provides a verbose accessibility label.
+
+## 2026-02-04 - Accessible Empty States
+**Learning:** Grouping all content in an empty state with .accessibilityElement(children: .combine) makes embedded buttons inaccessible/unreachable for VoiceOver users.
+**Action:** Wrap static text/images in a nested VStack with .combine, but place interactive buttons *outside* that group to ensure they remain focusable.
