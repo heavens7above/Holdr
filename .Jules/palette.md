@@ -30,6 +30,6 @@
 **Learning:** Absolute timestamps (e.g., "12:00 PM") without date context (e.g., "Yesterday") in history lists confuse users and screen readers about when an action occurred.
 **Action:** Implement a smart date formatter that adapts based on recency (Time -> Yesterday -> Short Date) and provides a verbose accessibility label.
 
-## 2026-02-10 - Clear Search Keyboard Shortcut
-**Learning:** Adding `.keyboardShortcut(.escape, modifiers: [])` to a "Clear Search" button in an empty state significantly improves keyboard navigation, allowing users to quickly reset their context without mouse interaction.
-**Action:** Implement keyboard shortcuts for primary recovery actions in empty or search states.
+## 2025-05-24 - Accessibility Grouping vs Interactive Elements
+**Learning:** Wrapping a container in `.accessibilityElement(children: .combine)` makes the entire container a single focusable element, which can render internal interactive elements (like Buttons) inaccessible or difficult to activate independently.
+**Action:** When adding actionable controls to an informational view, keep them outside of any `.combine` accessibility groups or use `.contain` instead.
