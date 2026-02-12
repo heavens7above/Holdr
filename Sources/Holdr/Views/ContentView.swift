@@ -36,28 +36,25 @@ struct ContentView: View {
                         .accessibilityElement(children: .combine)
                     } else {
                         VStack(spacing: 16) {
-                            VStack(spacing: 16) {
-                                Image(systemName: "magnifyingglass")
-                                    .font(.system(size: 60))
-                                    .foregroundColor(.secondary.opacity(0.5))
-                                    .accessibilityHidden(true)
-                                Text("No matches found")
-                                    .font(.title2)
-                                    .fontWeight(.medium)
-                                    .foregroundColor(.secondary)
-                                Text("No clips match \"\(searchText)\"")
-                                    .font(.callout)
-                                    .foregroundColor(.secondary.opacity(0.8))
-                                    .multilineTextAlignment(.center)
-                            }
-                            .accessibilityElement(children: .combine)
+                            Image(systemName: "magnifyingglass")
+                                .font(.system(size: 60))
+                                .foregroundColor(.secondary.opacity(0.5))
+                                .accessibilityHidden(true)
+                            Text("No matches found")
+                                .font(.title2)
+                                .fontWeight(.medium)
+                                .foregroundColor(.secondary)
+                            Text("No clips match \"\(searchText)\"")
+                                .font(.callout)
+                                .foregroundColor(.secondary.opacity(0.8))
+                                .multilineTextAlignment(.center)
 
                             Button("Clear Search") {
                                 searchText = ""
                             }
                             .buttonStyle(.bordered)
                             .keyboardShortcut(.escape, modifiers: [])
-                            .accessibilityLabel("Clear search filters")
+                            .accessibilityLabel("Clear search criteria")
                         }
                         .padding()
                     }
