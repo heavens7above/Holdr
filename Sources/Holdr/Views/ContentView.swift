@@ -48,9 +48,15 @@ struct ContentView: View {
                                 .font(.callout)
                                 .foregroundColor(.secondary.opacity(0.8))
                                 .multilineTextAlignment(.center)
+
+                            Button("Clear Search") {
+                                searchText = ""
+                            }
+                            .buttonStyle(.bordered)
+                            .keyboardShortcut(.escape, modifiers: [])
+                            .accessibilityLabel("Clear search criteria")
                         }
                         .padding()
-                        .accessibilityElement(children: .combine)
                     }
                 } else {
                     List {
