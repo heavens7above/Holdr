@@ -34,7 +34,15 @@ struct ClipCardView: View {
                     } else if hasFailedDecoding {
                         textContent
                     } else {
-                        Color.clear.frame(height: 120) // Placeholder
+                        ZStack {
+                            Color.secondary.opacity(0.1)
+                            ProgressView()
+                                .controlSize(.small)
+                        }
+                        .frame(height: 120)
+                        .cornerRadius(8)
+                        .accessibilityElement(children: .combine)
+                        .accessibilityLabel("Loading image")
                     }
                 } else {
                     textContent
@@ -77,7 +85,7 @@ struct ClipCardView: View {
         // Accessibility
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(accessibilityLabelText)
-        .accessibilityHint("Double click to copy to clipboard")
+        .accessibilityHint("Click to copy")
         // Image loading
         .task {
             if case .image(let id) = item.type {
