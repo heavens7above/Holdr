@@ -33,3 +33,7 @@
 ## 2025-05-24 - Accessibility Grouping vs Interactive Elements
 **Learning:** Wrapping a container in `.accessibilityElement(children: .combine)` makes the entire container a single focusable element, which can render internal interactive elements (like Buttons) inaccessible or difficult to activate independently.
 **Action:** When adding actionable controls to an informational view, keep them outside of any `.combine` accessibility groups or use `.contain` instead.
+
+## 2026-02-04 - Accessibility Hints vs Interaction Model
+**Learning:** Hardcoded accessibility hints (e.g., "Double click to copy") within child views can easily fall out of sync with the parent container's actual interaction model (e.g., a simple `Button` wrapper). This confuses users relying on screen readers.
+**Action:** Verify interaction hints against the parent container's behavior, or better yet, define accessibility actions on the parent container itself to ensure consistency.

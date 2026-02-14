@@ -16,11 +16,12 @@ struct SidebarView: View {
             
             Section("Running Shelves") {
                 ForEach(appDiscovery.runningApps) { app in
-                    HStack {
+                    Label {
+                        Text(app.name)
+                    } icon: {
                         Image(nsImage: app.icon)
                             .resizable()
                             .frame(width: 16, height: 16)
-                        Text(app.name)
                     }
                     .tag(HistoryItem.Category.app(app.bundleID))
                 }

@@ -31,16 +31,17 @@ struct ClipCardView: View {
                              .aspectRatio(contentMode: .fit)
                              .frame(maxHeight: 120)
                              .cornerRadius(8)
+                             .transition(.opacity.animation(.default))
                     } else if hasFailedDecoding {
                         textContent
                     } else {
                         ZStack {
-                            Color.secondary.opacity(0.1)
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(Color.secondary.opacity(0.1))
+                                .frame(height: 120)
                             ProgressView()
                                 .controlSize(.small)
                         }
-                        .frame(height: 120)
-                        .cornerRadius(8)
                         .accessibilityElement(children: .combine)
                         .accessibilityLabel("Loading image")
                     }
@@ -85,7 +86,7 @@ struct ClipCardView: View {
         // Accessibility
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(accessibilityLabelText)
-        .accessibilityHint("Click to copy")
+        .accessibilityHint("Click to copy to clipboard")
         // Image loading
         .task {
             if case .image(let id) = item.type {
