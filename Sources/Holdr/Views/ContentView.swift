@@ -1,5 +1,6 @@
 // Made and Dev by Sam
 import SwiftUI
+import AppKit
 
 struct ContentView: View {
     @EnvironmentObject var clipboardMonitor: ClipboardMonitor
@@ -118,6 +119,15 @@ struct ContentView: View {
             }
             .navigationTitle(selectedCategory?.rawValue ?? "All")
             .searchable(text: $searchText, placement: .toolbar)
+            .onChange(of: showCopyFeedback) { show in
+                if show {
+                    NSAccessibility.post(
+                        element: NSApp,
+                        notification: .announcement,
+                        userInfo: [.announcement: "Copied to clipboard"]
+                    )
+                }
+            }
         }
         .frame(minWidth: 600, minHeight: 400)
     }
