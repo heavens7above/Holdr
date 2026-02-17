@@ -37,3 +37,7 @@
 ## 2026-02-04 - Accessibility Hints vs Interaction Model
 **Learning:** Hardcoded accessibility hints (e.g., "Double click to copy") within child views can easily fall out of sync with the parent container's actual interaction model (e.g., a simple `Button` wrapper). This confuses users relying on screen readers.
 **Action:** Verify interaction hints against the parent container's behavior, or better yet, define accessibility actions on the parent container itself to ensure consistency.
+
+## 2026-02-04 - Sidebar List Accessibility & Content
+**Learning:** Standard SwiftUI `Label` in a sidebar `List` does not support trailing accessories (like count badges) without a custom `HStack`. When using a custom `HStack`, it is critical to apply `.accessibilityElement(children: .combine)` to the row container so VoiceOver reads the label and the badge as a single unit (e.g., "Images, 5 items") rather than separate focusable elements.
+**Action:** Always wrap custom list rows containing metadata in an accessibility group.
