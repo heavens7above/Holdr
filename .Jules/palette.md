@@ -37,3 +37,7 @@
 ## 2026-02-04 - Accessibility Hints vs Interaction Model
 **Learning:** Hardcoded accessibility hints (e.g., "Double click to copy") within child views can easily fall out of sync with the parent container's actual interaction model (e.g., a simple `Button` wrapper). This confuses users relying on screen readers.
 **Action:** Verify interaction hints against the parent container's behavior, or better yet, define accessibility actions on the parent container itself to ensure consistency.
+
+## 2026-02-04 - Transient Feedback Accessibility
+**Learning:** Transient visual feedback (toasts) in SwiftUI often lacks accessibility announcements, leaving screen reader users unaware of the confirmation.
+**Action:** Use `.onChange` with `NSAccessibility.post(notification: .announcement)` to bridge the gap between visual state changes and audio feedback.
