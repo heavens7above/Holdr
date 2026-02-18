@@ -47,3 +47,7 @@
 ## 2026-02-04 - Transient Feedback Accessibility
 **Learning:** Transient visual feedback (toasts) in SwiftUI often lacks accessibility announcements, leaving screen reader users unaware of the confirmation.
 **Action:** Use `.onChange` with `NSAccessibility.post(notification: .announcement)` to bridge the gap between visual state changes and audio feedback.
+
+## 2026-02-05 - Empty State Accessibility Structure
+**Learning:** Empty states often combine informational text (icon, title, description) with an action button. Grouping the informational content with `.accessibilityElement(children: .combine)` while keeping the action button separate provides a clean, navigable experience for screen reader users.
+**Action:** When designing empty states with actions, always group the static content separately from interactive elements.
