@@ -1,5 +1,6 @@
 // Made and Dev by Sam
 import SwiftUI
+import AppKit
 
 struct ContentView: View {
     @EnvironmentObject var clipboardMonitor: ClipboardMonitor
@@ -114,10 +115,20 @@ struct ContentView: View {
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                     }
                     .zIndex(100)
+                    .accessibilityHidden(true)
                 }
             }
             .navigationTitle(selectedCategory?.rawValue ?? "All")
             .searchable(text: $searchText, placement: .toolbar)
+            .onChange(of: showCopyFeedback) { show in
+                if show {
+                    NSAccessibility.post(
+                        element: NSApp,
+                        notification: .announcement,
+                        userInfo: [.announcement: "Copied to clipboard"]
+                    )
+                }
+            }
         }
         .frame(minWidth: 600, minHeight: 400)
     }
@@ -143,6 +154,15 @@ struct ContentView: View {
 
     private func copyToClipboard(_ item: HistoryItem) {
         clipboardMonitor.copyItem(item)
+
+        // Post accessibility announcement
+        let announcement = "Copied to clipboard"
+        NSAccessibilityPostNotificationWithUserInfo(
+            NSApp.mainWindow ?? NSApp,
+            .announcementRequested,
+            [.announcement: announcement]
+        )
+
         withAnimation(.spring()) {
             showCopyFeedback = true
         }
