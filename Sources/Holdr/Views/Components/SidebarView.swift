@@ -9,29 +9,59 @@ struct SidebarView: View {
         List(selection: $selection) {
             Section("Library") {
                 ForEach(HistoryItem.Category.allCases) { category in
-                    Label(category.rawValue, systemImage: category.icon)
-                        .tag(category)
+                    HStack {
+                        Label(category.rawValue, systemImage: category.icon)
+                        Spacer()
+                        let count = count(for: category)
+                        if count > 0 {
+                            Text("\(count)")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    .tag(category)
+                    .accessibilityElement(children: .combine)
                 }
             }
             
             Section("Running Shelves") {
                 ForEach(appDiscovery.runningApps) { app in
-                    Label {
-                        Text(app.name)
-                    } icon: {
-                        Image(nsImage: app.icon)
-                            .resizable()
-                            .frame(width: 16, height: 16)
+                    HStack {
+                        Label {
+                            Text(app.name)
+                        } icon: {
+                            Image(nsImage: app.icon)
+                                .resizable()
+                                .frame(width: 16, height: 16)
+                        }
+                        Spacer()
+                        let count = count(for: .app(app.bundleID))
+                        if count > 0 {
+                            Text("\(count)")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
                     }
                     .tag(HistoryItem.Category.app(app.bundleID))
+                    .accessibilityElement(children: .combine)
                 }
             }
             
             if !otherApps.isEmpty {
                 Section("Other History") {
                     ForEach(otherApps) { app in
-                        Label(app.name, systemImage: "clock")
-                            .tag(HistoryItem.Category.app(app.bundleID))
+                        HStack {
+                            Label(app.name, systemImage: "clock")
+                            Spacer()
+                            let count = count(for: .app(app.bundleID))
+                            if count > 0 {
+                                Text("\(count)")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        .tag(HistoryItem.Category.app(app.bundleID))
+                        .accessibilityElement(children: .combine)
                     }
                 }
             }
@@ -62,6 +92,17 @@ struct SidebarView: View {
         return uniqueBundleIDs.sorted().compactMap { bundleID in
             guard let name = cachedApps[bundleID] else { return nil }
             return HistoryAppDisplay(bundleID: bundleID, name: name)
+        }
+    }
+
+    private func count(for category: HistoryItem.Category) -> Int {
+        switch category {
+        case .all:
+            return clipboardMonitor.items.count
+        case .text, .link, .image:
+            return clipboardMonitor.items.filter { $0.category == category }.count
+        case .app(let bundleID):
+            return clipboardMonitor.items.filter { $0.appBundleID == bundleID }.count
         }
     }
 }
