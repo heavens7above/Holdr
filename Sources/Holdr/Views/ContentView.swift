@@ -115,6 +115,7 @@ struct ContentView: View {
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                     }
                     .zIndex(100)
+                    .accessibilityHidden(true)
                 }
             }
             .navigationTitle(selectedCategory?.rawValue ?? "All")
@@ -153,6 +154,15 @@ struct ContentView: View {
 
     private func copyToClipboard(_ item: HistoryItem) {
         clipboardMonitor.copyItem(item)
+
+        // Post accessibility announcement
+        let announcement = "Copied to clipboard"
+        NSAccessibilityPostNotificationWithUserInfo(
+            NSApp.mainWindow ?? NSApp,
+            .announcementRequested,
+            [.announcement: announcement]
+        )
+
         withAnimation(.spring()) {
             showCopyFeedback = true
         }
