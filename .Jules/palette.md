@@ -41,3 +41,6 @@
 ## 2026-02-05 - Transient State Accessibility
 **Learning:** Visual feedback for transient actions (like "Copied to clipboard" toasts) is invisible to screen reader users unless explicitly announced.
 **Action:** Always pair visual toasts with `NSAccessibilityPostNotificationWithUserInfo(..., .announcementRequested, ...)` to ensure blind users receive confirmation of the action.
+## 2026-02-04 - Transient Feedback Accessibility
+**Learning:** Transient visual feedback (toasts) in SwiftUI often lacks accessibility announcements, leaving screen reader users unaware of the confirmation.
+**Action:** Use `.onChange` with `NSAccessibility.post(notification: .announcement)` to bridge the gap between visual state changes and audio feedback.
