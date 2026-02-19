@@ -47,3 +47,7 @@
 ## 2026-02-04 - Transient Feedback Accessibility
 **Learning:** Transient visual feedback (toasts) in SwiftUI often lacks accessibility announcements, leaving screen reader users unaware of the confirmation.
 **Action:** Use `.onChange` with `NSAccessibility.post(notification: .announcement)` to bridge the gap between visual state changes and audio feedback.
+
+## 2024-05-23 - Accessibility Grouping & Interactive Elements
+**Learning:** Using `.accessibilityElement(children: .combine)` on a container that includes interactive elements (like Buttons) can obscure the button's role and action from assistive technologies. The container often takes precedence as a single "static text" element.
+**Action:** Always separate static content and interactive elements into sibling views. Group the static content with `.combine`, and leave the interactive elements as siblings so they remain independently navigable.
