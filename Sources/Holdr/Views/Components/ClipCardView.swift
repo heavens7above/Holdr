@@ -120,7 +120,14 @@ struct ClipCardView: View {
         switch item.type {
         case .text: typeString = "Text"
         case .link: typeString = "Link"
-        case .image: typeString = "Image"
+        case .image:
+            if decodedImage == nil && !hasFailedDecoding {
+                typeString = "Loading image"
+            } else if hasFailedDecoding {
+                typeString = "Image failed to load"
+            } else {
+                typeString = "Image"
+            }
         }
 
         let appString = item.appName.map { ", from \($0)" } ?? ""

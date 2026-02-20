@@ -47,3 +47,7 @@
 ## 2026-02-04 - Transient Feedback Accessibility
 **Learning:** Transient visual feedback (toasts) in SwiftUI often lacks accessibility announcements, leaving screen reader users unaware of the confirmation.
 **Action:** Use `.onChange` with `NSAccessibility.post(notification: .announcement)` to bridge the gap between visual state changes and audio feedback.
+
+## 2026-05-24 - Accessibility of Transient Loading States
+**Learning:** When using `.accessibilityElement(children: .ignore)` on a container, internal loading indicators (like `ProgressView`) become invisible to screen readers.
+**Action:** Expose loading states dynamically in the parent container's `accessibilityLabel` computed property (e.g., "Loading image...") to keep users informed.
