@@ -17,6 +17,7 @@ struct SidebarView: View {
                             Text("\(count)")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
+                                .accessibilityLabel("\(count) items")
                         }
                     }
                     .tag(category)
@@ -40,6 +41,7 @@ struct SidebarView: View {
                             Text("\(count)")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
+                                .accessibilityLabel("\(count) items")
                         }
                     }
                     .tag(HistoryItem.Category.app(app.bundleID))
@@ -58,6 +60,7 @@ struct SidebarView: View {
                                 Text("\(count)")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
+                                    .accessibilityLabel("\(count) items")
                             }
                         }
                         .tag(HistoryItem.Category.app(app.bundleID))
@@ -66,13 +69,9 @@ struct SidebarView: View {
                 }
             }
             
-            Section("Debug Info") {
-                Text("Clips: \(clipboardMonitor.items.count)")
-                Text("Apps: \(appDiscovery.runningApps.count)")
-            }
         }
         .listStyle(.sidebar)
-        .navigationTitle("PastePal")
+        .navigationTitle("Holdr")
     }
     
     // Apps that are in history but NOT currently running
