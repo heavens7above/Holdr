@@ -47,3 +47,7 @@
 ## 2026-02-04 - Transient Feedback Accessibility
 **Learning:** Transient visual feedback (toasts) in SwiftUI often lacks accessibility announcements, leaving screen reader users unaware of the confirmation.
 **Action:** Use `.onChange` with `NSAccessibility.post(notification: .announcement)` to bridge the gap between visual state changes and audio feedback.
+
+## 2026-02-05 - Contextual Numeric Badges
+**Learning:** Numeric badges (e.g., "5") next to labels in a sidebar are ambiguous when read by screen readers. "Images, 5" lacks semantic meaning.
+**Action:** Always add `.accessibilityLabel("\(count) items")` to numeric text elements to provide explicit context (e.g., "Images, 5 items") within combined accessibility elements.
