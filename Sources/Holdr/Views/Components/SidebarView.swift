@@ -12,12 +12,7 @@ struct SidebarView: View {
                     HStack {
                         Label(category.rawValue, systemImage: category.icon)
                         Spacer()
-                        let count = count(for: category)
-                        if count > 0 {
-                            Text("\(count)")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
+                        badge(count(for: category))
                     }
                     .tag(category)
                     .accessibilityElement(children: .combine)
@@ -35,12 +30,7 @@ struct SidebarView: View {
                                 .frame(width: 16, height: 16)
                         }
                         Spacer()
-                        let count = count(for: .app(app.bundleID))
-                        if count > 0 {
-                            Text("\(count)")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
+                        badge(count(for: .app(app.bundleID)))
                     }
                     .tag(HistoryItem.Category.app(app.bundleID))
                     .accessibilityElement(children: .combine)
@@ -53,12 +43,7 @@ struct SidebarView: View {
                         HStack {
                             Label(app.name, systemImage: "clock")
                             Spacer()
-                            let count = count(for: .app(app.bundleID))
-                            if count > 0 {
-                                Text("\(count)")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
+                            badge(count(for: .app(app.bundleID)))
                         }
                         .tag(HistoryItem.Category.app(app.bundleID))
                         .accessibilityElement(children: .combine)
@@ -92,6 +77,21 @@ struct SidebarView: View {
         return uniqueBundleIDs.sorted().compactMap { bundleID in
             guard let name = cachedApps[bundleID] else { return nil }
             return HistoryAppDisplay(bundleID: bundleID, name: name)
+        }
+    }
+
+    @ViewBuilder
+    private func badge(_ count: Int) -> some View {
+        if count > 0 {
+            Text("\(count)")
+                .font(.caption)
+                .fontWeight(.medium)
+                .foregroundColor(.secondary)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 2)
+                .background(Color.secondary.opacity(0.1))
+                .clipShape(Capsule())
+                .accessibilityLabel("\(count) items")
         }
     }
 

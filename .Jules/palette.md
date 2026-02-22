@@ -47,3 +47,7 @@
 ## 2026-02-04 - Transient Feedback Accessibility
 **Learning:** Transient visual feedback (toasts) in SwiftUI often lacks accessibility announcements, leaving screen reader users unaware of the confirmation.
 **Action:** Use `.onChange` with `NSAccessibility.post(notification: .announcement)` to bridge the gap between visual state changes and audio feedback.
+
+## 2026-02-05 - Reusable ViewBuilders for Sidebar Accessories
+**Learning:** To maintain consistency and reduce duplication for sidebar accessories (like count badges) across multiple sections, a private `@ViewBuilder` function within the View struct is a lightweight alternative to creating a separate View file, keeping related logic co-located.
+**Action:** Use private `@ViewBuilder` helper functions for small, repetitive UI elements within complex Views.
