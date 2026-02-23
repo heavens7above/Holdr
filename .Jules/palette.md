@@ -47,3 +47,7 @@
 ## 2026-02-04 - Transient Feedback Accessibility
 **Learning:** Transient visual feedback (toasts) in SwiftUI often lacks accessibility announcements, leaving screen reader users unaware of the confirmation.
 **Action:** Use `.onChange` with `NSAccessibility.post(notification: .announcement)` to bridge the gap between visual state changes and audio feedback.
+
+## 2026-02-05 - Pluralization in Accessibility Labels
+**Learning:** Hardcoded accessibility strings like "\(count) items" sound unnatural when the count is 1 (e.g., "1 items"). Small details in voiceover feedback significantly impact the perceived quality of the app.
+**Action:** Use conditional logic (e.g., `count == 1 ? "" : "s"`) or `String.localizedStringWithFormat` to ensure grammatical correctness in accessibility labels.

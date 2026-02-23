@@ -12,12 +12,7 @@ struct SidebarView: View {
                     HStack {
                         Label(category.rawValue, systemImage: category.icon)
                         Spacer()
-                        let count = count(for: category)
-                        if count > 0 {
-                            Text("\(count)")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
+                        badge(count(for: category))
                     }
                     .tag(category)
                     .accessibilityElement(children: .combine)
@@ -35,12 +30,7 @@ struct SidebarView: View {
                                 .frame(width: 16, height: 16)
                         }
                         Spacer()
-                        let count = count(for: .app(app.bundleID))
-                        if count > 0 {
-                            Text("\(count)")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
+                        badge(count(for: .app(app.bundleID)))
                     }
                     .tag(HistoryItem.Category.app(app.bundleID))
                     .accessibilityElement(children: .combine)
@@ -53,26 +43,29 @@ struct SidebarView: View {
                         HStack {
                             Label(app.name, systemImage: "clock")
                             Spacer()
-                            let count = count(for: .app(app.bundleID))
-                            if count > 0 {
-                                Text("\(count)")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
+                            badge(count(for: .app(app.bundleID)))
                         }
                         .tag(HistoryItem.Category.app(app.bundleID))
                         .accessibilityElement(children: .combine)
                     }
                 }
             }
-            
-            Section("Debug Info") {
-                Text("Clips: \(clipboardMonitor.items.count)")
-                Text("Apps: \(appDiscovery.runningApps.count)")
-            }
         }
         .listStyle(.sidebar)
-        .navigationTitle("PastePal")
+        .navigationTitle("Holdr")
+    }
+
+    @ViewBuilder
+    private func badge(_ count: Int) -> some View {
+        if count > 0 {
+            Text("\(count)")
+                .font(.caption.weight(.medium))
+                .foregroundColor(.secondary)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 2)
+                .background(Capsule().fill(Color.secondary.opacity(0.1)))
+                .accessibilityLabel("\(count) item\(count == 1 ? "" : "s")")
+        }
     }
     
     // Apps that are in history but NOT currently running
