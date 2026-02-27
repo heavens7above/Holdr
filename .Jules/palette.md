@@ -47,3 +47,6 @@
 ## 2026-02-04 - Transient Feedback Accessibility
 **Learning:** Transient visual feedback (toasts) in SwiftUI often lacks accessibility announcements, leaving screen reader users unaware of the confirmation.
 **Action:** Use `.onChange` with `NSAccessibility.post(notification: .announcement)` to bridge the gap between visual state changes and audio feedback.
+## 2024-02-27 - Sidebar View Count Badges and Accessibility
+**Learning:** Native numeric string displays in SwiftUI `List` rows lack context for VoiceOver, often reading out just the number without relating it to the list item. Refactoring to a distinct capsule `badge` allows specifically targeting the element with a clearer `.accessibilityLabel("\(count) items")`.
+**Action:** When adding secondary status indicators or counts in List rows, wrap them in a dedicated `@ViewBuilder` function or component and explicitly provide an `.accessibilityLabel` to bridge the context gap.

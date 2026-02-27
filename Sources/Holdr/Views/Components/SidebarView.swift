@@ -14,9 +14,7 @@ struct SidebarView: View {
                         Spacer()
                         let count = count(for: category)
                         if count > 0 {
-                            Text("\(count)")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
+                            badge(count)
                         }
                     }
                     .tag(category)
@@ -37,9 +35,7 @@ struct SidebarView: View {
                         Spacer()
                         let count = count(for: .app(app.bundleID))
                         if count > 0 {
-                            Text("\(count)")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
+                            badge(count)
                         }
                     }
                     .tag(HistoryItem.Category.app(app.bundleID))
@@ -55,9 +51,7 @@ struct SidebarView: View {
                             Spacer()
                             let count = count(for: .app(app.bundleID))
                             if count > 0 {
-                                Text("\(count)")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
+                                badge(count)
                             }
                         }
                         .tag(HistoryItem.Category.app(app.bundleID))
@@ -66,13 +60,10 @@ struct SidebarView: View {
                 }
             }
             
-            Section("Debug Info") {
-                Text("Clips: \(clipboardMonitor.items.count)")
-                Text("Apps: \(appDiscovery.runningApps.count)")
-            }
+
         }
         .listStyle(.sidebar)
-        .navigationTitle("PastePal")
+        .navigationTitle("Holdr")
     }
     
     // Apps that are in history but NOT currently running
@@ -104,5 +95,17 @@ struct SidebarView: View {
         case .app(let bundleID):
             return clipboardMonitor.items.filter { $0.appBundleID == bundleID }.count
         }
+    }
+
+    @ViewBuilder
+    private func badge(_ count: Int) -> some View {
+        Text("\(count)")
+            .font(.caption)
+            .fontWeight(.bold)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 2)
+            .background(Color.secondary.opacity(0.2))
+            .clipShape(Capsule())
+            .accessibilityLabel("\(count) items")
     }
 }
