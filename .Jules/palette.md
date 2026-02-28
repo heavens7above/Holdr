@@ -47,3 +47,7 @@
 ## 2026-02-04 - Transient Feedback Accessibility
 **Learning:** Transient visual feedback (toasts) in SwiftUI often lacks accessibility announcements, leaving screen reader users unaware of the confirmation.
 **Action:** Use `.onChange` with `NSAccessibility.post(notification: .announcement)` to bridge the gap between visual state changes and audio feedback.
+
+## 2026-02-05 - Pill Badges for Sidebar Item Counts
+**Learning:** Displaying raw numbers for item counts in a macOS sidebar can feel unpolished and lack visual separation from the main item label. Standard macOS apps (like Mail or Notes) use pill-shaped badges with distinct backgrounds to clearly differentiate metadata from content.
+**Action:** When displaying item counts or similar metadata in a `List` sidebar, style them as pill badges (e.g., using a `.caption` font, `.secondary` foreground, slight padding, `.background` color, and a `.clipShape(Capsule())`) to improve visual hierarchy and align with platform expectations.
