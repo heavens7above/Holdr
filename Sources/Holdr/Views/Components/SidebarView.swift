@@ -14,9 +14,7 @@ struct SidebarView: View {
                         Spacer()
                         let count = count(for: category)
                         if count > 0 {
-                            Text("\(count)")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
+                            badge(count)
                         }
                     }
                     .tag(category)
@@ -37,9 +35,7 @@ struct SidebarView: View {
                         Spacer()
                         let count = count(for: .app(app.bundleID))
                         if count > 0 {
-                            Text("\(count)")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
+                            badge(count)
                         }
                     }
                     .tag(HistoryItem.Category.app(app.bundleID))
@@ -55,9 +51,7 @@ struct SidebarView: View {
                             Spacer()
                             let count = count(for: .app(app.bundleID))
                             if count > 0 {
-                                Text("\(count)")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
+                                badge(count)
                             }
                         }
                         .tag(HistoryItem.Category.app(app.bundleID))
@@ -93,6 +87,18 @@ struct SidebarView: View {
             guard let name = cachedApps[bundleID] else { return nil }
             return HistoryAppDisplay(bundleID: bundleID, name: name)
         }
+    }
+
+    private func badge(_ count: Int) -> some View {
+        Text("\(count)")
+            .font(.caption)
+            .fontWeight(.semibold)
+            .foregroundColor(.secondary)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 2)
+            .background(Color.secondary.opacity(0.15))
+            .clipShape(Capsule())
+            .accessibilityLabel("\(count) items")
     }
 
     private func count(for category: HistoryItem.Category) -> Int {
