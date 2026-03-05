@@ -72,7 +72,7 @@ struct ContentView: View {
                                 Button(action: { copyToClipboard(item) }) {
                                     Label("Copy", systemImage: "doc.on.doc")
                                 }
-                                Button(action: { deleteItem(item) }) {
+                                Button(role: .destructive, action: { deleteItem(item) }) {
                                     Label("Delete", systemImage: "trash")
                                 }
                             }
@@ -119,7 +119,7 @@ struct ContentView: View {
                 }
             }
             .navigationTitle(selectedCategory?.rawValue ?? "All")
-            .searchable(text: $searchText, placement: .toolbar)
+            .searchable(text: $searchText, placement: .toolbar, prompt: "Search history...")
             .onChange(of: showCopyFeedback) { show in
                 if show {
                     NSAccessibility.post(
