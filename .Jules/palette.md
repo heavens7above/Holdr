@@ -47,3 +47,7 @@
 ## 2026-02-04 - Transient Feedback Accessibility
 **Learning:** Transient visual feedback (toasts) in SwiftUI often lacks accessibility announcements, leaving screen reader users unaware of the confirmation.
 **Action:** Use `.onChange` with `NSAccessibility.post(notification: .announcement)` to bridge the gap between visual state changes and audio feedback.
+
+## 2026-03-08 - Destructive Context Actions & Hidden Shortcuts
+**Learning:** Native macOS context menus highlight destructive actions (like Delete) in red. Additionally, users might not know a standard keyboard shortcut (e.g., Escape to clear search).
+**Action:** Use `role: .destructive` on buttons meant to delete or remove data to align with native styling and screen reader semantics. Always use `.help()` to document unstated keyboard shortcuts on buttons. Also add `prompt:` to searchable fields to make intent clear.
