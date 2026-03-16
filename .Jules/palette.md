@@ -47,3 +47,7 @@
 ## 2026-02-04 - Transient Feedback Accessibility
 **Learning:** Transient visual feedback (toasts) in SwiftUI often lacks accessibility announcements, leaving screen reader users unaware of the confirmation.
 **Action:** Use `.onChange` with `NSAccessibility.post(notification: .announcement)` to bridge the gap between visual state changes and audio feedback.
+
+## 2026-02-05 - Discoverability of Keyboard Shortcuts
+**Learning:** Adding `.keyboardShortcut` modifiers to buttons is great for power users, but completely invisible to mouse users unless explicitly documented in the UI. This can lead to a "hidden" UI that users never discover.
+**Action:** Always pair invisible `.keyboardShortcut` modifiers with a native `.help()` tooltip that spells out the shortcut (e.g., `Clear Search (Esc)`) so mouse users can learn the faster interaction pattern.
