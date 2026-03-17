@@ -55,6 +55,7 @@ struct ContentView: View {
                             }
                             .buttonStyle(.bordered)
                             .keyboardShortcut(.escape, modifiers: [])
+                            .help("Press Escape to clear search")
                             .accessibilityLabel("Clear search criteria")
                         }
                         .padding()
@@ -72,7 +73,7 @@ struct ContentView: View {
                                 Button(action: { copyToClipboard(item) }) {
                                     Label("Copy", systemImage: "doc.on.doc")
                                 }
-                                Button(action: { deleteItem(item) }) {
+                                Button(role: .destructive, action: { deleteItem(item) }) {
                                     Label("Delete", systemImage: "trash")
                                 }
                             }
