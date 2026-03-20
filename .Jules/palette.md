@@ -1,11 +1,3 @@
-## 2026-02-03 - Custom List Item Accessibility
-**Learning:** In macOS SwiftUI, complex List items (ClipCardView) do not automatically behave as accessible buttons or show hover states. They require explicit .accessibilityAddTraits(.isButton) and manual .onHover handling to match native expectations.
-**Action:** Always add .isButton trait and hover effects to interactive list rows that are not standard text cells.
-## 2024-05-22 - Clip Card Interaction Pattern
-**Learning:** List items in SwiftUI macOS apps often lack native hover states when customized heavily. Users expect desktop-class mouse interaction (hover highlight) to indicate interactability.
-**Action:** When creating custom list items that act as buttons (especially with `onTapGesture`), manually implement `onHover` state to change background and border color. Also, ensure the custom view is treated as a single accessibility element (`.isButton`) with a consolidated label to prevent VoiceOver from reading fragmented UI parts.
-# Palette's Journal
-
 ## 2024-05-22 - ClipCardView Accessibility & Interactivity
 **Learning:** List items in custom SwiftUI views often lack native hover states and accessible grouping, requiring manual implementation of `.onHover` and `.accessibilityElement(children: .combine)`.
 **Action:** Always wrap custom list rows in an accessibility element and add visual feedback states manually when not using standard `List` styles.
@@ -47,3 +39,7 @@
 ## 2026-02-04 - Transient Feedback Accessibility
 **Learning:** Transient visual feedback (toasts) in SwiftUI often lacks accessibility announcements, leaving screen reader users unaware of the confirmation.
 **Action:** Use `.onChange` with `NSAccessibility.post(notification: .announcement)` to bridge the gap between visual state changes and audio feedback.
+
+## 2026-02-05 - Search Field Discoverability
+**Learning:** Empty search fields without prompts can be unintuitive. Adding a `prompt` (placeholder text) directly provides users with context on what they can search for.
+**Action:** Always use the `prompt` parameter in SwiftUI `.searchable` modifiers to enhance discoverability.
