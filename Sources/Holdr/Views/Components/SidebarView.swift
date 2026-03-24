@@ -96,13 +96,6 @@ struct SidebarView: View {
     }
 
     private func count(for category: HistoryItem.Category) -> Int {
-        switch category {
-        case .all:
-            return clipboardMonitor.items.count
-        case .text, .link, .image:
-            return clipboardMonitor.items.filter { $0.category == category }.count
-        case .app(let bundleID):
-            return clipboardMonitor.items.filter { $0.appBundleID == bundleID }.count
-        }
+        return clipboardMonitor.categoryCounts[category] ?? 0
     }
 }
