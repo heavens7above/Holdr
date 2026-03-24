@@ -4,8 +4,10 @@ class PersistenceManager {
     static let shared = PersistenceManager()
 
     private let fileManager = FileManager.default
-    private let lock = NSLock()
+    private let lock = NSRecursiveLock()
     private var _persistenceDirectory: URL?
+    private var _historyFileURL: URL?
+    private var _imagesDirectoryURL: URL?
 
     var persistenceDirectory: URL? {
         lock.lock()
@@ -50,15 +52,29 @@ class PersistenceManager {
     }
 
     var historyFileURL: URL? {
-        return persistenceDirectory?.appendingPathComponent("history.json")
+        lock.lock()
+        defer { lock.unlock() }
+
+        if let existing = _historyFileURL {
+            return existing
+        }
+
+        let calculated = persistenceDirectory?.appendingPathComponent("history.json")
+        _historyFileURL = calculated
+        return calculated
     }
 
     var imagesDirectoryURL: URL? {
+        lock.lock()
+        defer { lock.unlock() }
+
+        if let existing = _imagesDirectoryURL {
+            return existing
+        }
+
         guard let dir = persistenceDirectory else { return nil }
         let imagesDir = dir.appendingPathComponent("images")
-        // Create directory if it doesn't exist
-        // Optimization: We could cache this too, but for now we rely on OS caching for fileExists
-        // or we can optimize it similarly if needed. The task focused on persistenceURL.
+
         if !fileManager.fileExists(atPath: imagesDir.path) {
             do {
                 try fileManager.createDirectory(at: imagesDir, withIntermediateDirectories: true)
@@ -66,6 +82,8 @@ class PersistenceManager {
                 print("PersistenceManager: Failed to create images directory: \(error)")
             }
         }
+
+        _imagesDirectoryURL = imagesDir
         return imagesDir
     }
 }
