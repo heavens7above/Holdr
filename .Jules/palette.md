@@ -47,3 +47,7 @@
 ## 2026-02-04 - Transient Feedback Accessibility
 **Learning:** Transient visual feedback (toasts) in SwiftUI often lacks accessibility announcements, leaving screen reader users unaware of the confirmation.
 **Action:** Use `.onChange` with `NSAccessibility.post(notification: .announcement)` to bridge the gap between visual state changes and audio feedback.
+
+## 2026-02-06 - Search Bar Discoverability
+**Learning:** Default search bars in SwiftUI macOS apps often lack clear context, making it less intuitive for users to understand what exactly they are searching for.
+**Action:** Always include a descriptive `prompt` string in the `.searchable` modifier to provide clear placeholder text and improve discoverability.
