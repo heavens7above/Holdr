@@ -41,6 +41,10 @@
 ## 2026-02-04 - Sidebar List Accessibility & Content
 **Learning:** Standard SwiftUI `Label` in a sidebar `List` does not support trailing accessories (like count badges) without a custom `HStack`. When using a custom `HStack`, it is critical to apply `.accessibilityElement(children: .combine)` to the row container so VoiceOver reads the label and the badge as a single unit (e.g., "Images, 5 items") rather than separate focusable elements.
 **Action:** Always wrap custom list rows containing metadata in an accessibility group.
+
+## 2026-02-05 - Semantic Badges in SwiftUI Lists
+**Learning:** In macOS 12+ SwiftUI apps, replacing custom `HStack` list rows with `.badge(_ count: Int)` on `Label` components provides superior native styling, automatic zero-hiding, and semantic VoiceOver grouping without manual `.accessibilityElement(children: .combine)` wrappers.
+**Action:** Always prefer `.badge()` over custom trailing `Text` views for item counts in navigation and sidebar lists.
 ## 2026-02-05 - Transient State Accessibility
 **Learning:** Visual feedback for transient actions (like "Copied to clipboard" toasts) is invisible to screen reader users unless explicitly announced.
 **Action:** Always pair visual toasts with `NSAccessibilityPostNotificationWithUserInfo(..., .announcementRequested, ...)` to ensure blind users receive confirmation of the action.
