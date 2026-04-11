@@ -47,3 +47,6 @@
 ## 2026-02-04 - Transient Feedback Accessibility
 **Learning:** Transient visual feedback (toasts) in SwiftUI often lacks accessibility announcements, leaving screen reader users unaware of the confirmation.
 **Action:** Use `.onChange` with `NSAccessibility.post(notification: .announcement)` to bridge the gap between visual state changes and audio feedback.
+## 2026-02-05 - Accessibility Combinations and Interactive Sub-views
+**Learning:** Wrapping an entire logical section with `.accessibilityElement(children: .combine)` makes VoiceOver treat it as a single block of text or an image. If there's an interactive element like a `Button` inside that group, VoiceOver might completely skip the button's actionability, making it invisible to screen reader users or un-clickable.
+**Action:** Always separate informational elements into their own nested `VStack`/`HStack` and apply `.accessibilityElement(children: .combine)` there, leaving buttons outside that group so they maintain their native accessibility traits and focusability.

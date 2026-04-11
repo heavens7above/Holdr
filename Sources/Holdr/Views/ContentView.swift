@@ -37,18 +37,21 @@ struct ContentView: View {
                         .accessibilityElement(children: .combine)
                     } else {
                         VStack(spacing: 16) {
-                            Image(systemName: "magnifyingglass")
-                                .font(.system(size: 60))
-                                .foregroundColor(.secondary.opacity(0.5))
-                                .accessibilityHidden(true)
-                            Text("No matches found")
-                                .font(.title2)
-                                .fontWeight(.medium)
-                                .foregroundColor(.secondary)
-                            Text("No clips match \"\(searchText)\"")
-                                .font(.callout)
-                                .foregroundColor(.secondary.opacity(0.8))
-                                .multilineTextAlignment(.center)
+                            VStack(spacing: 16) {
+                                Image(systemName: "magnifyingglass")
+                                    .font(.system(size: 60))
+                                    .foregroundColor(.secondary.opacity(0.5))
+                                    .accessibilityHidden(true)
+                                Text("No matches found")
+                                    .font(.title2)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(.secondary)
+                                Text("No clips match \"\(searchText)\"")
+                                    .font(.callout)
+                                    .foregroundColor(.secondary.opacity(0.8))
+                                    .multilineTextAlignment(.center)
+                            }
+                            .accessibilityElement(children: .combine)
 
                             Button("Clear Search") {
                                 searchText = ""
@@ -56,6 +59,7 @@ struct ContentView: View {
                             .buttonStyle(.bordered)
                             .keyboardShortcut(.escape, modifiers: [])
                             .accessibilityLabel("Clear search criteria")
+                            .help("Clear Search (Esc)")
                         }
                         .padding()
                     }
@@ -72,7 +76,7 @@ struct ContentView: View {
                                 Button(action: { copyToClipboard(item) }) {
                                     Label("Copy", systemImage: "doc.on.doc")
                                 }
-                                Button(action: { deleteItem(item) }) {
+                                Button(role: .destructive, action: { deleteItem(item) }) {
                                     Label("Delete", systemImage: "trash")
                                 }
                             }
@@ -119,7 +123,7 @@ struct ContentView: View {
                 }
             }
             .navigationTitle(selectedCategory?.rawValue ?? "All")
-            .searchable(text: $searchText, placement: .toolbar)
+            .searchable(text: $searchText, placement: .toolbar, prompt: "Search clipboard history...")
             .onChange(of: showCopyFeedback) { show in
                 if show {
                     NSAccessibility.post(
