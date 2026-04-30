@@ -47,3 +47,10 @@
 ## 2026-02-04 - Transient Feedback Accessibility
 **Learning:** Transient visual feedback (toasts) in SwiftUI often lacks accessibility announcements, leaving screen reader users unaware of the confirmation.
 **Action:** Use `.onChange` with `NSAccessibility.post(notification: .announcement)` to bridge the gap between visual state changes and audio feedback.
+## 2024-10-26 - Descriptive Search Prompts
+**Learning:** The default `.searchable()` modifier without a prompt in macOS apps often lacks context for users.
+**Action:** Always add a descriptive `prompt` parameter to `.searchable()` modifiers to clarify what the user is searching for (e.g., "Search clipboard history").
+
+## 2024-10-26 - Destructive Action Semantics
+**Learning:** Context menu buttons that perform destructive actions (like "Delete") lack native visual cues and correct accessibility semantics unless explicitly marked.
+**Action:** Always use the `role: .destructive` parameter on Buttons for destructive operations to ensure native styling (like red text) and correct accessibility.
