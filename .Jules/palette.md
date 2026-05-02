@@ -47,3 +47,7 @@
 ## 2026-02-04 - Transient Feedback Accessibility
 **Learning:** Transient visual feedback (toasts) in SwiftUI often lacks accessibility announcements, leaving screen reader users unaware of the confirmation.
 **Action:** Use `.onChange` with `NSAccessibility.post(notification: .announcement)` to bridge the gap between visual state changes and audio feedback.
+
+## 2026-02-05 - Context Menu Destructive Actions & Search Prompts
+**Learning:** Destructive actions in SwiftUI context menus on macOS should always use `role: .destructive` to provide semantic meaning and native styling. Also, empty search bars without prompts can leave users guessing what to search for. Adding a `prompt` parameter to `.searchable` improves discoverability.
+**Action:** Always include a `role: .destructive` on delete/remove buttons and always provide a descriptive `prompt` string in `.searchable` modifiers.
