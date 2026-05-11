@@ -119,7 +119,7 @@ struct ContentView: View {
                 }
             }
             .navigationTitle(selectedCategory?.rawValue ?? "All")
-            .searchable(text: $searchText, placement: .toolbar)
+            .searchable(text: $searchText, placement: .toolbar, prompt: "Search copied clips, links, or apps...")
             .onChange(of: showCopyFeedback) { show in
                 if show {
                     NSAccessibility.post(
