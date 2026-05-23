@@ -9,59 +9,32 @@ struct SidebarView: View {
         List(selection: $selection) {
             Section("Library") {
                 ForEach(HistoryItem.Category.allCases) { category in
-                    HStack {
-                        Label(category.rawValue, systemImage: category.icon)
-                        Spacer()
-                        let count = count(for: category)
-                        if count > 0 {
-                            Text("\(count)")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                    .tag(category)
-                    .accessibilityElement(children: .combine)
+                    Label(category.rawValue, systemImage: category.icon)
+                        .badge(count(for: category))
+                        .tag(category)
                 }
             }
             
             Section("Running Shelves") {
                 ForEach(appDiscovery.runningApps) { app in
-                    HStack {
-                        Label {
+                    Label {
                             Text(app.name)
                         } icon: {
                             Image(nsImage: app.icon)
                                 .resizable()
                                 .frame(width: 16, height: 16)
                         }
-                        Spacer()
-                        let count = count(for: .app(app.bundleID))
-                        if count > 0 {
-                            Text("\(count)")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                    .tag(HistoryItem.Category.app(app.bundleID))
-                    .accessibilityElement(children: .combine)
+                        .badge(count(for: .app(app.bundleID)))
+                        .tag(HistoryItem.Category.app(app.bundleID))
                 }
             }
             
             if !otherApps.isEmpty {
                 Section("Other History") {
                     ForEach(otherApps) { app in
-                        HStack {
-                            Label(app.name, systemImage: "clock")
-                            Spacer()
-                            let count = count(for: .app(app.bundleID))
-                            if count > 0 {
-                                Text("\(count)")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-                        .tag(HistoryItem.Category.app(app.bundleID))
-                        .accessibilityElement(children: .combine)
+                        Label(app.name, systemImage: "clock")
+                            .badge(count(for: .app(app.bundleID)))
+                            .tag(HistoryItem.Category.app(app.bundleID))
                     }
                 }
             }
