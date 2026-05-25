@@ -47,3 +47,7 @@
 ## 2026-02-04 - Transient Feedback Accessibility
 **Learning:** Transient visual feedback (toasts) in SwiftUI often lacks accessibility announcements, leaving screen reader users unaware of the confirmation.
 **Action:** Use `.onChange` with `NSAccessibility.post(notification: .announcement)` to bridge the gap between visual state changes and audio feedback.
+
+## 2026-05-25 - Explicit Semantics for Destructive Actions
+**Learning:** Native macOS SwiftUI apps should use explicit semantic roles like `role: .destructive` for actions like "Delete" in context menus to inherit native styling (red text on hover) and correct VoiceOver warnings. Similarly, buttons that clear state should have `.help()` modifiers indicating keyboard shortcuts for better discoverability.
+**Action:** Always check context menus and buttons for appropriate semantic roles and add `.help()` tooltips for hidden keyboard shortcuts.
