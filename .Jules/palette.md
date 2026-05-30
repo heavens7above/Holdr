@@ -47,3 +47,6 @@
 ## 2026-02-04 - Transient Feedback Accessibility
 **Learning:** Transient visual feedback (toasts) in SwiftUI often lacks accessibility announcements, leaving screen reader users unaware of the confirmation.
 **Action:** Use `.onChange` with `NSAccessibility.post(notification: .announcement)` to bridge the gap between visual state changes and audio feedback.
+## 2024-05-30 - Native Badges and Destructive Roles in SwiftUI
+**Learning:** Replacing custom `HStack` layouts with SwiftUI's native `.badge(_ count: Int)` modifier for list row counts provides significant benefits: it inherits standard macOS pill styling, automatically handles zero-hiding without conditional logic, and provides perfect built-in VoiceOver grouping without requiring explicit `.accessibilityElement(children: .combine)` grouping. Additionally, using `role: .destructive` on context menu buttons provides standard semantic meaning and visual styling (red text) for destructive actions on macOS, enhancing both visual communication and accessibility.
+**Action:** When adding counts to list rows or sidebar items in macOS apps targeting macOS 12+, default to using `.badge(_ count: Int)` on `Label` elements rather than building custom `HStack` layouts. For actions that delete or destroy data, always apply `role: .destructive` to the `Button` element.
