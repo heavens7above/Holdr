@@ -47,3 +47,6 @@
 ## 2026-02-04 - Transient Feedback Accessibility
 **Learning:** Transient visual feedback (toasts) in SwiftUI often lacks accessibility announcements, leaving screen reader users unaware of the confirmation.
 **Action:** Use `.onChange` with `NSAccessibility.post(notification: .announcement)` to bridge the gap between visual state changes and audio feedback.
+## 2026-05-31 - Added destructive role to context menu delete button
+**Learning:** In SwiftUI, setting `role: .destructive` on a `Button` within a `contextMenu` automatically applies standard semantic styling (like red text/icons) and correctly exposes the destructive intent to VoiceOver, warning visually impaired users that the action removes data.
+**Action:** Always verify if a button performs a deletion or removal action, and apply `role: .destructive` to ensure native accessibility and standard UI conventions.

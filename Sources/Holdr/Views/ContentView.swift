@@ -72,7 +72,7 @@ struct ContentView: View {
                                 Button(action: { copyToClipboard(item) }) {
                                     Label("Copy", systemImage: "doc.on.doc")
                                 }
-                                Button(action: { deleteItem(item) }) {
+                                Button(role: .destructive, action: { deleteItem(item) }) {
                                     Label("Delete", systemImage: "trash")
                                 }
                             }
