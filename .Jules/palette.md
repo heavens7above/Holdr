@@ -47,3 +47,6 @@
 ## 2026-02-04 - Transient Feedback Accessibility
 **Learning:** Transient visual feedback (toasts) in SwiftUI often lacks accessibility announcements, leaving screen reader users unaware of the confirmation.
 **Action:** Use `.onChange` with `NSAccessibility.post(notification: .announcement)` to bridge the gap between visual state changes and audio feedback.
+## 2026-02-05 - Native Badges for Sidebar List Rows
+**Learning:** In macOS SwiftUI apps, using custom `HStack` layouts for trailing counts in a `List` loses native OS features like VoiceOver grouping and standard pill styling. Native `.badge()` automatically handles zero-hiding, formatting, and correct accessibility groupings.
+**Action:** Always use the native `.badge(_ count: Int)` modifier for trailing counts in lists instead of custom views with manual accessibility configurations.
