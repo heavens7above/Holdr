@@ -47,3 +47,6 @@
 ## 2026-02-04 - Transient Feedback Accessibility
 **Learning:** Transient visual feedback (toasts) in SwiftUI often lacks accessibility announcements, leaving screen reader users unaware of the confirmation.
 **Action:** Use `.onChange` with `NSAccessibility.post(notification: .announcement)` to bridge the gap between visual state changes and audio feedback.
+## 2026-02-05 - Native Context Menu Roles
+**Learning:** In macOS SwiftUI, destructive actions in context menus (like "Delete") do not receive standard red highlighting or native accessibility semantics unless explicitly marked with `role: .destructive`.
+**Action:** Always add `role: .destructive` to context menu buttons that perform deletion or destructive actions.
