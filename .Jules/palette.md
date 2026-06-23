@@ -47,3 +47,10 @@
 ## 2026-02-04 - Transient Feedback Accessibility
 **Learning:** Transient visual feedback (toasts) in SwiftUI often lacks accessibility announcements, leaving screen reader users unaware of the confirmation.
 **Action:** Use `.onChange` with `NSAccessibility.post(notification: .announcement)` to bridge the gap between visual state changes and audio feedback.
+## 2024-05-24 - Sidebar List Count Badges
+**Learning:** In macOS SwiftUI, implementing trailing counts in `List` items using custom `HStack` layouts with `.accessibilityElement(children: .combine)` is overly complex and fragile. The native `.badge(_ count: Int)` modifier attached to a `Label` automatically handles trailing alignment, standard macOS pill styling, zero-hiding, and perfect VoiceOver grouping out of the box.
+**Action:** Always prefer the native `.badge()` modifier for trailing counts in macOS lists over custom `HStack` solutions.
+
+## 2024-05-24 - Search Field Discoverability
+**Learning:** A blank search field lacks context and can reduce discoverability of search functionality.
+**Action:** Always use the `prompt` parameter on the `.searchable()` modifier to provide a clear placeholder text (e.g., "Search clipboard...").
