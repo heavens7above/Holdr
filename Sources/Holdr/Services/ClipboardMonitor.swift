@@ -3,25 +3,14 @@ import AppKit
 import UniformTypeIdentifiers
 
 class ClipboardMonitor: ObservableObject {
-    var historyApps: [String: String] = [:]
-
-    private func updateCache() {
-        var apps: [String: String] = [:]
-        for item in items {
-            if let bid = item.appBundleID, apps[bid] == nil {
-                apps[bid] = item.appName ?? "Unknown"
-            }
-        }
-        historyApps = apps
-    }
     @Published var items: [HistoryItem] = [] {
         didSet {
-            updateCache()
             print("ClipboardMonitor: items updated, count: \(items.count)")
 
             // Optimization: Single pass for multiple derived data needs
             var currentImageIDs = Set<String>()
             var newAppNames: [String: String] = [:]
+            var newCategoryCounts: [String: Int] = [:]
 
             for item in items {
                 // 1. Collect Image IDs
@@ -30,12 +19,19 @@ class ClipboardMonitor: ObservableObject {
                 }
 
                 // 2. Collect App Names (First wins logic)
-                if let bid = item.appBundleID, newAppNames[bid] == nil {
-                    newAppNames[bid] = item.appName ?? "Unknown"
+                if let bid = item.appBundleID {
+                    if newAppNames[bid] == nil {
+                        newAppNames[bid] = item.appName ?? "Unknown"
+                    }
+                    let appCategoryID = HistoryItem.Category.app(bid).id
+                    newCategoryCounts[appCategoryID, default: 0] += 1
                 }
+
+                newCategoryCounts[item.category.id, default: 0] += 1
             }
 
             self.appNames = newAppNames
+            self.categoryCounts = newCategoryCounts
 
             // Detect and cleanup removed images
             let oldImages = Set(oldValue.compactMap { item -> String? in
@@ -54,6 +50,7 @@ class ClipboardMonitor: ObservableObject {
 
     // Cache for O(1) app name lookup
     public private(set) var appNames: [String: String] = [:]
+    @Published public private(set) var categoryCounts: [String: Int] = [:]
     private var changeCount = 0
     private let pasteboard = NSPasteboard.general
     private let persistenceManager = PersistenceManager.shared
