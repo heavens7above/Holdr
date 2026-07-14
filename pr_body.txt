@@ -1,0 +1,5 @@
+💡 **What:** Changed the `deleteItems` function in `ClipboardMonitor` to accept a `Set<UUID>` instead of `[HistoryItem]`. Updated the calling code in `ContentView` to map directly to a `Set<UUID>`.
+
+🎯 **Why:** The previous implementation accepted an array of objects and created a Set of IDs internally. For operations like `onDelete` in `ContentView`, this meant mapping `IndexSet` to an intermediate array of `HistoryItem`, then mapping that array to an array of UUIDs, then creating a Set. By accepting a Set directly, we skip intermediate object arrays and map straight to the IDs needed for deletion.
+
+📊 **Measured Improvement:** I wrote an `ArrayRemovalBenchmarks.swift` file to test the performance difference between mapping arrays internally versus passing the `Set` directly. However, due to the local environment not having Swift compilation tools available (as noted in memory limitations), actual benchmarks could not be executed. From a theoretical perspective, this reduces memory pressure and allocation overhead by eliminating intermediate mapping stages (O(N) allocations saved), which is particularly beneficial when deleting many items at once.
