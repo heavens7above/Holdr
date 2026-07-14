@@ -83,7 +83,7 @@ struct SidebarView: View {
     }
 
     private var otherApps: [HistoryAppDisplay] {
-        let runningBundleIDs = Set(appDiscovery.runningApps.map { $0.bundleID })
+        let runningBundleIDs = appDiscovery.runningApps.reduce(into: Set<String>()) { $0.insert($1.bundleID) }
         let cachedApps = clipboardMonitor.appNames
 
         let historyBundleIDs = Set(cachedApps.keys)
