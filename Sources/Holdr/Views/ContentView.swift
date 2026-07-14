@@ -134,7 +134,15 @@ struct ContentView: View {
     }
     
     var filteredItems: [HistoryItem] {
-        let categoryFiltered = clipboardMonitor.items.filter { item in
+        clipboardMonitor.items.filter { item in
+            // 1. Check search text (faster fail if it doesn't match)
+            if !searchText.isEmpty {
+                if !item.content.localizedCaseInsensitiveContains(searchText) {
+                    return false
+                }
+            }
+
+            // 2. Check category filter
             guard let category = selectedCategory else { return true }
             switch category {
             case .all: return true
@@ -143,12 +151,6 @@ struct ContentView: View {
             case .image: return item.category == .image
             case .app(let bundleID): return item.appBundleID == bundleID
             }
-        }
-        
-        if searchText.isEmpty {
-            return categoryFiltered
-        } else {
-            return categoryFiltered.filter { $0.content.localizedCaseInsensitiveContains(searchText) }
         }
     }
 
