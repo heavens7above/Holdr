@@ -99,10 +99,8 @@ struct SidebarView: View {
         switch category {
         case .all:
             return clipboardMonitor.items.count
-        case .text, .link, .image:
-            return clipboardMonitor.items.filter { $0.category == category }.count
-        case .app(let bundleID):
-            return clipboardMonitor.items.filter { $0.appBundleID == bundleID }.count
+        case .text, .link, .image, .app:
+            return clipboardMonitor.categoryCounts[category.id] ?? 0
         }
     }
 }
