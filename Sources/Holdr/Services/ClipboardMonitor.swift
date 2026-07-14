@@ -185,78 +185,53 @@ class ClipboardMonitor: ObservableObject {
                 print("Attempting migration from legacy format...")
                 let legacyLoaded = try JSONDecoder().decode([LegacyHistoryItem].self, from: data)
 
-                var migratedItems: [HistoryItem] = []
-                for legacy in legacyLoaded {
-                    let type: HistoryItem.ItemType
-                    switch legacy.type {
-                    case .text:
-                        type = .text
-                    case .link(let url):
-                        type = .link(url)
-                    case .image(let imageData):
-                        // Save image to new store
-                        if let id = ImageStore.shared.save(data: imageData) {
-                            type = .image(id)
-                        } else {
-                            // Fallback if save fails, skip or handle error
-                            print("Migration: Failed to save image for item \(legacy.id)")
-                            continue
+                Task {
+                    var migratedItems: [HistoryItem?] = Array(repeating: nil, count: legacyLoaded.count)
+
+                    await withTaskGroup(of: (Int, HistoryItem?).self) { group in
+                        for (index, legacy) in legacyLoaded.enumerated() {
+                            group.addTask {
+                                let type: HistoryItem.ItemType
+                                switch legacy.type {
+                                case .text:
+                                    type = .text
+                                case .link(let url):
+                                    type = .link(url)
+                                case .image(let imageData):
+                                    // Save image to new store
+                                    if let id = ImageStore.shared.save(data: imageData) {
+                                        type = .image(id)
+                                    } else {
+                                        // Fallback if save fails, skip or handle error
+                                        print("Migration: Failed to save image for item \(legacy.id)")
+                                        return (index, nil)
+                                    }
+                                }
+                                var item = HistoryItem(content: legacy.content, type: type, date: legacy.date, appBundleID: legacy.appBundleID, appName: legacy.appName)
+                                item.id = legacy.id
+                                return (index, item)
+                            }
+                        }
+
+                        for await (index, item) in group {
+                            if let item = item {
+                                migratedItems[index] = item
+                            }
                         }
                     }
-                    var item = HistoryItem(content: legacy.content, type: type, date: legacy.date, appBundleID: legacy.appBundleID, appName: legacy.appName)
-                    item.id = legacy.id
-                    migratedItems.append(item)
-                }
 
-                DispatchQueue.main.async {
-                    self.items = migratedItems
-                    print("Migrated and loaded \(migratedItems.count) items from disk")
-                    // Trigger save to persist migration (will save new small JSON)
-                    self.save()
+                    let finalItems = migratedItems.compactMap { $0 }
+
+                    DispatchQueue.main.async {
+                        self.items = finalItems
+                        print("Migrated and loaded \(finalItems.count) items from disk")
+                        // Trigger save to persist migration (will save new small JSON)
+                        self.save()
+                    }
                 }
 
             } catch {
-                print("Failed to load new format, trying legacy: \(error)")
-                // 2. Try legacy format
-                do {
-                    let data = try Data(contentsOf: url)
-                    let legacyItems = try JSONDecoder().decode([LegacyHistoryItem].self, from: data)
-                    print("Found \(legacyItems.count) legacy items. Migrating...")
-
-                    var newItems: [HistoryItem] = []
-                    for item in legacyItems {
-                        let newType: HistoryItem.ItemType
-                        switch item.type {
-                        case .text:
-                            newType = .text
-                        case .link(let url):
-                            newType = .link(url)
-                        case .image(let data):
-                            guard let uuid = ImageStore.shared.save(data: data) else { continue }
-                            newType = .image(uuid)
-                        }
-
-                        let newItem = HistoryItem(
-                            content: item.content,
-                            type: newType,
-                            date: item.date,
-                            appBundleID: item.appBundleID,
-                            appName: item.appName
-                        )
-                        var finalItem = newItem
-                        finalItem.id = item.id
-                        newItems.append(finalItem)
-                    }
-
-                    // Update UI and Save converted
-                    DispatchQueue.main.async {
-                        self.items = newItems
-                        print("Migrated \(newItems.count) items to new format")
-                        self.save()
-                    }
-                } catch {
-                    print("Failed to load history (legacy): \(error)")
-                }
+                print("Failed to load history: \(error)")
             }
         }
     }
