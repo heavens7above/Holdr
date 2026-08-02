@@ -55,6 +55,7 @@ struct ContentView: View {
                             }
                             .buttonStyle(.bordered)
                             .keyboardShortcut(.escape, modifiers: [])
+                            .help("Press Escape to clear search")
                             .accessibilityLabel("Clear search criteria")
                         }
                         .padding()
