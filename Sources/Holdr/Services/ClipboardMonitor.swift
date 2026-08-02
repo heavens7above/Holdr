@@ -185,8 +185,11 @@ class ClipboardMonitor: ObservableObject {
                 print("Attempting migration from legacy format...")
                 let legacyLoaded = try JSONDecoder().decode([LegacyHistoryItem].self, from: data)
 
-                var migratedItems: [HistoryItem] = []
-                for legacy in legacyLoaded {
+                var migratedItemsBuffer = [HistoryItem?](repeating: nil, count: legacyLoaded.count)
+                let lock = NSLock()
+
+                DispatchQueue.concurrentPerform(iterations: legacyLoaded.count) { i in
+                    let legacy = legacyLoaded[i]
                     let type: HistoryItem.ItemType
                     switch legacy.type {
                     case .text:
@@ -194,19 +197,24 @@ class ClipboardMonitor: ObservableObject {
                     case .link(let url):
                         type = .link(url)
                     case .image(let imageData):
-                        // Save image to new store
+                        // Save image to new store concurrently
                         if let id = ImageStore.shared.save(data: imageData) {
                             type = .image(id)
                         } else {
                             // Fallback if save fails, skip or handle error
                             print("Migration: Failed to save image for item \(legacy.id)")
-                            continue
+                            return
                         }
                     }
                     var item = HistoryItem(content: legacy.content, type: type, date: legacy.date, appBundleID: legacy.appBundleID, appName: legacy.appName)
                     item.id = legacy.id
-                    migratedItems.append(item)
+
+                    lock.lock()
+                    migratedItemsBuffer[i] = item
+                    lock.unlock()
                 }
+
+                let migratedItems = migratedItemsBuffer.compactMap { $0 }
 
                 DispatchQueue.main.async {
                     self.items = migratedItems
@@ -223,8 +231,11 @@ class ClipboardMonitor: ObservableObject {
                     let legacyItems = try JSONDecoder().decode([LegacyHistoryItem].self, from: data)
                     print("Found \(legacyItems.count) legacy items. Migrating...")
 
-                    var newItems: [HistoryItem] = []
-                    for item in legacyItems {
+                    var newItemsBuffer = [HistoryItem?](repeating: nil, count: legacyItems.count)
+                    let lock = NSLock()
+
+                    DispatchQueue.concurrentPerform(iterations: legacyItems.count) { i in
+                        let item = legacyItems[i]
                         let newType: HistoryItem.ItemType
                         switch item.type {
                         case .text:
@@ -232,7 +243,7 @@ class ClipboardMonitor: ObservableObject {
                         case .link(let url):
                             newType = .link(url)
                         case .image(let data):
-                            guard let uuid = ImageStore.shared.save(data: data) else { continue }
+                            guard let uuid = ImageStore.shared.save(data: data) else { return }
                             newType = .image(uuid)
                         }
 
@@ -245,8 +256,13 @@ class ClipboardMonitor: ObservableObject {
                         )
                         var finalItem = newItem
                         finalItem.id = item.id
-                        newItems.append(finalItem)
+
+                        lock.lock()
+                        newItemsBuffer[i] = finalItem
+                        lock.unlock()
                     }
+
+                    let newItems = newItemsBuffer.compactMap { $0 }
 
                     // Update UI and Save converted
                     DispatchQueue.main.async {
