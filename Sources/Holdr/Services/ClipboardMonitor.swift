@@ -172,8 +172,11 @@ class ClipboardMonitor: ObservableObject {
                 // 1. Try decoding current format
                 if let loaded = try? JSONDecoder().decode([HistoryItem].self, from: data) {
                     DispatchQueue.main.async {
-                        self.items = loaded
-                        print("Loaded \(loaded.count) items from disk")
+                        // Merge loaded items to avoid replacing items added during async load
+                        let existingIDs = Set(self.items.map { $0.id })
+                        let newItems = loaded.filter { !existingIDs.contains($0.id) }
+                        self.items.append(contentsOf: newItems)
+                        print("Loaded \(loaded.count) items from disk, merged \(newItems.count)")
                     }
                     return
                 }
@@ -214,8 +217,10 @@ class ClipboardMonitor: ObservableObject {
                 let migratedItems = migratedItemsBuffer.compactMap { $0 }
 
                 DispatchQueue.main.async {
-                    self.items = migratedItems
-                    print("Migrated and loaded \(migratedItems.count) items from disk")
+                    let existingIDs = Set(self.items.map { $0.id })
+                    let newItems = migratedItems.filter { !existingIDs.contains($0.id) }
+                    self.items.append(contentsOf: newItems)
+                    print("Migrated and loaded \(migratedItems.count) items from disk, merged \(newItems.count)")
                     // Trigger save to persist migration (will save new small JSON)
                     self.save()
                 }
@@ -263,8 +268,10 @@ class ClipboardMonitor: ObservableObject {
 
                     // Update UI and Save converted
                     DispatchQueue.main.async {
-                        self.items = newItems
-                        print("Migrated \(newItems.count) items to new format")
+                        let existingIDs = Set(self.items.map { $0.id })
+                        let itemsToMerge = newItems.filter { !existingIDs.contains($0.id) }
+                        self.items.append(contentsOf: itemsToMerge)
+                        print("Migrated \(newItems.count) legacy items to new format, merged \(itemsToMerge.count)")
                         self.save()
                     }
                 } catch {
