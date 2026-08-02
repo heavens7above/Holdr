@@ -389,8 +389,7 @@ class ClipboardMonitor: ObservableObject {
             print("Failed to write to clipboard")
         }
     }
-    func deleteItems(_ itemsToDelete: [HistoryItem]) {
-        let idsToDelete = Set(itemsToDelete.map { $0.id })
+    func deleteItems(withIDs idsToDelete: Set<UUID>) {
         items.removeAll { idsToDelete.contains($0.id) }
     }
 

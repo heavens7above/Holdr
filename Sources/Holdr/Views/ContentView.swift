@@ -176,11 +176,15 @@ struct ContentView: View {
     }
     
     private func deleteItems(at offsets: IndexSet) {
-        let itemsToDelete = offsets.map { filteredItems[$0] }
-        clipboardMonitor.deleteItems(itemsToDelete)
+        let currentFilteredItems = filteredItems
+        var idsToDelete = Set<UUID>(minimumCapacity: offsets.count)
+        for index in offsets {
+            idsToDelete.insert(currentFilteredItems[index].id)
+        }
+        clipboardMonitor.deleteItems(withIDs: idsToDelete)
     }
     
     private func deleteItem(_ item: HistoryItem) {
-        clipboardMonitor.deleteItems([item])
+        clipboardMonitor.deleteItems(withIDs: [item.id])
     }
 }
