@@ -50,3 +50,7 @@
 ## 2026-02-05 - Native List Badges in macOS SwiftUI
 **Learning:** Using custom `HStack` + `Spacer` + `Text` combinations for list item counts in macOS SwiftUI sidebars requires manual accessibility grouping to read correctly, and doesn't fully match standard macOS pill styling. The native `.badge()` modifier provides built-in VoiceOver grouping, standard macOS visual styling, and automatic zero-hiding out of the box.
 **Action:** Always use the native `.badge(_ count: Int)` modifier for trailing counts in macOS lists instead of constructing custom layouts.
+
+## 2026-03-01 - Missing Button Trait from Ignore Grouping
+**Learning:** Using `.accessibilityElement(children: .ignore)` on a view (even if inside a `Button`) can unintentionally strip default interaction traits from VoiceOver. This causes standard elements like list cards to lack their essential native identity as interactable components.
+**Action:** Always append `.accessibilityAddTraits(.isButton)` when applying an `.ignore` children policy on custom views that represent interactable items (like list cards).
