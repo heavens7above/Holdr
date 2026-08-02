@@ -56,6 +56,8 @@ struct ClipCardView: View {
                         Text("• Link")
                     } else if case .image = item.type {
                         Text("• Image")
+                    } else {
+                        Text("• \(item.content.count) chars")
                     }
                 }
                 .font(.caption)
