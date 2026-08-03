@@ -89,6 +89,7 @@ struct ClipCardView: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(accessibilityLabelText)
         .accessibilityHint("Click to copy to clipboard")
+        .accessibilityAddTraits(.isButton)
         // Image loading
         .task {
             if case .image(let id) = item.type {
