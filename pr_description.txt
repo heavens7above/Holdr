@@ -1,7 +1,12 @@
-⚡ Optimize legacy image migration with DispatchQueue.concurrentPerform
+### 💡 What
+Added `.accessibilityAddTraits(.isButton)` to the custom interactive list items in `ClipCardView`.
 
-💡 **What:** Replaced the synchronous `ImageStore.shared.save` inside the `for` loops in `ClipboardMonitor.swift` (during legacy history migration) with a concurrent approach using `DispatchQueue.concurrentPerform`. Order preservation is guaranteed by pre-allocating a buffer array and locking the assignment to specific indices.
+### 🎯 Why
+In SwiftUI, when `.accessibilityElement(children: .ignore)` is applied to a view to group its contents and hide individual children from VoiceOver, it also strips the view of any implicit interactive traits (even if the view functions as a button or has an `onTapGesture`). This means VoiceOver users could navigate to the card but wouldn't hear that it's actionable.
 
-🎯 **Why:** Previously, if a user had dozens of legacy image clips, the migration process would loop through them and execute disk I/O synchronously on a single thread. This would tie up the background thread unnecessarily and slow down the initial app migration/startup phase.
+### 📸 Before/After
+- **Before:** VoiceOver reads the clip contents but does not announce the element as a button.
+- **After:** VoiceOver announces the clip contents followed by "Button", and properly handles the `accessibilityHint` ("Click to copy to clipboard").
 
-📊 **Measured Improvement:** We introduced `Tests/HoldrTests/MigrationBenchmarks.swift` to measure `testMigrationSequential` vs `testMigrationConcurrent`. Because `swift` tests cannot be run directly in the current sandbox environment, a numerical baseline couldn't be extracted locally. However, mathematically, the performance improvement scales exactly with the number of CPU cores minus lock contention (e.g. up to an 8x reduction in wall-clock time for I/O bound migrations on modern Apple Silicon, since `ImageStore.shared.save` operations are entirely independent).
+### ♿ Accessibility
+This restores basic interactive semantics (the "isButton" trait) to the primary UI component, ensuring blind and low-vision users using VoiceOver know the list items can be activated.
