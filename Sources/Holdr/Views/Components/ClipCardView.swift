@@ -87,6 +87,7 @@ struct ClipCardView: View {
         .onHover { isHovering = $0 }
         // Accessibility
         .accessibilityElement(children: .ignore)
+        .accessibilityAddTraits(.isButton)
         .accessibilityLabel(accessibilityLabelText)
         .accessibilityHint("Click to copy to clipboard")
         // Image loading
