@@ -1,8 +1,4 @@
-💡 **What:**
-Optimized the `count(for:)` function in `SidebarView` from an O(n) array filter evaluation on every call to an O(1) dictionary lookup by pre-computing item counts per category and app bundle ID. It also leverages the existing one-pass loop over the `items` array to calculate this property, avoiding redundant loops.
-
-🎯 **Why:**
-The previous implementation performed an `items.filter { ... }.count` operation for every category in the sidebar (Library categories and all Running Shelves and Other History categories) during view rendering. Because `SidebarView` is updated often and can have a large clipboard history, this led to CPU inefficiencies and potential frame drops. Pre-calculating these counts allows the view to quickly retrieve values in O(1) time without any array allocation or filtering.
-
-📊 **Measured Improvement:**
-Due to environmental limitations (missing `swift`, `xcodebuild`, etc.), it is not possible to run explicit performance profiling benchmarks or build the app locally in this environment. However, eliminating O(n) filtering inside a SwiftUI View's body function (which is called for every rendered list item) is a well-established and guaranteed performance improvement that will dramatically decrease CPU overhead and improve the application's energy efficiency.
+💡 **What**: Added the `.isButton` accessibility trait to custom list items (`ClipCardView`).
+🎯 **Why**: When overriding the accessibility tree in SwiftUI with `.accessibilityElement(children: .ignore)` (necessary to prevent VoiceOver from reading every sub-element of the card individually), the implicit button interaction traits are lost, even when wrapped in a `Button` in the parent view. Adding `.accessibilityAddTraits(.isButton)` restores the semantic meaning so screen readers announce the element as an actionable button rather than static text.
+📸 **Before/After**: No visual change; improves audio VoiceOver experience.
+♿ **Accessibility**: VoiceOver now correctly announces clip history items as actionable, enhancing usability for visually impaired users.
