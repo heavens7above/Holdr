@@ -158,14 +158,6 @@ struct ContentView: View {
     private func copyToClipboard(_ item: HistoryItem) {
         clipboardMonitor.copyItem(item)
 
-        // Post accessibility announcement
-        let announcement = "Copied to clipboard"
-        NSAccessibilityPostNotificationWithUserInfo(
-            NSApp.mainWindow ?? NSApp,
-            .announcementRequested,
-            [.announcement: announcement]
-        )
-
         withAnimation(.spring()) {
             showCopyFeedback = true
         }
