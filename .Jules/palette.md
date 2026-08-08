@@ -50,3 +50,7 @@
 ## 2026-02-05 - Native List Badges in macOS SwiftUI
 **Learning:** Using custom `HStack` + `Spacer` + `Text` combinations for list item counts in macOS SwiftUI sidebars requires manual accessibility grouping to read correctly, and doesn't fully match standard macOS pill styling. The native `.badge()` modifier provides built-in VoiceOver grouping, standard macOS visual styling, and automatic zero-hiding out of the box.
 **Action:** Always use the native `.badge(_ count: Int)` modifier for trailing counts in macOS lists instead of constructing custom layouts.
+
+## 2026-02-05 - Accessibility Reduce Motion and Button Traits
+**Learning:** Transient hover animations like `scaleEffect` on custom list views can trigger motion sickness for sensitive users. Additionally, when using `.accessibilityElement(children: .ignore)` to create a clean label for custom items acting as buttons, VoiceOver loses the implicit button trait.
+**Action:** Always conditionally disable hover motion (like `scaleEffect`) using `@Environment(\.accessibilityReduceMotion)`, and manually apply `.accessibilityAddTraits(.isButton)` to grouped actionable elements.
