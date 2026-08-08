@@ -4,6 +4,7 @@ import AppKit
 struct ClipCardView: View {
     let item: HistoryItem
     @State private var isHovering = false
+    @Environment(\.accessibilityReduceMotion) var reduceMotion
 
     @State private var decodedImage: NSImage?
     @State private var hasFailedDecoding = false
@@ -82,11 +83,12 @@ struct ClipCardView: View {
                 .stroke(isHovering ? Color.accentColor.opacity(0.5) : Color(nsColor: .separatorColor), lineWidth: isHovering ? 2 : 0.5)
         )
         .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
-        .scaleEffect(isHovering ? 1.01 : 1.0)
+        .scaleEffect(isHovering && !reduceMotion ? 1.01 : 1.0)
         .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isHovering)
         .onHover { isHovering = $0 }
         // Accessibility
         .accessibilityElement(children: .ignore)
+        .accessibilityAddTraits(.isButton)
         .accessibilityLabel(accessibilityLabelText)
         .accessibilityHint("Click to copy to clipboard")
         // Image loading
